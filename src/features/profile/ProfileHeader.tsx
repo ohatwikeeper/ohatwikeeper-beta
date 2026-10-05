@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Compass, LogOut, Palette, Sun } from 'lucide-react'
 import { askLogout } from '@/widgets/LogoutDialog'
@@ -18,43 +17,6 @@ import Tip from '@/components/dashboard-ui/Tip'
 const Slot = ({ children }: { children: React.ReactNode }) => <span className="flex shrink-0">{children}</span>
 const STACK = [Compass, Sun, Palette]
 
-// 通知・言語などのポップアップが開いている間は畳まない(ツールチップは対象外)
-const popupOpen = (box: HTMLElement | null) => !!box?.querySelector('[aria-expanded="true"]')
-const useStackOpen = () => {
-  const [open, setOpen] = useState(false)
-  const pinned = useRef(false)
-  const box = useRef<HTMLDivElement>(null)
-  const timer = useRef<number>(0)
-  // 閉じるのは少し遅らせて、境界でのちらつきを防ぐ
-  const hover = (v: boolean) => { window.clearTimeout(timer.current); timer.current = 0; if (v) setOpen(true) }
-  useEffect(() => {
-    if (!open) return
-    // ポップオーバー操作中は開いたままにし、外側を押したら畳む
-    const h = (e: PointerEvent) => {
-      if (box.current?.contains(e.target as Node) || (e.target as Element).closest?.('[role="dialog"], [role="menu"], [role="listbox"]')) return
-      pinned.current = false; setOpen(false)
-    }
-    // 表示が切り替わっても確実に閉じられるよう、enter/leave ではなくカーソル位置の範囲判定で畳む
-    const m = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse' || pinned.current || popupOpen(box.current)) return
-      const r = box.current?.getBoundingClientRect()
-      const inside = !!r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6
-      if (inside) { window.clearTimeout(timer.current); timer.current = 0 }
-      else if (!timer.current) timer.current = window.setTimeout(() => { timer.current = 0; setOpen(false) }, 120)
-    }
-    document.addEventListener('pointerdown', h)
-    document.addEventListener('pointermove', m)
-    // カーソルがウィンドウ外へ出た/ウィンドウが非アクティブになった場合は pointermove が来ないため別途畳む
-    const out = (e: MouseEvent) => { if (!e.relatedTarget && !pinned.current && !popupOpen(box.current)) { window.clearTimeout(timer.current); timer.current = 0; setOpen(false) } }
-    const blur = () => { if (!pinned.current && !popupOpen(box.current)) setOpen(false) }
-    document.documentElement.addEventListener('mouseleave', out)
-    document.addEventListener('mouseout', out)
-    window.addEventListener('blur', blur)
-    return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('pointermove', m); document.documentElement.removeEventListener('mouseleave', out); document.removeEventListener('mouseout', out); window.removeEventListener('blur', blur); window.clearTimeout(timer.current) }
-  }, [open])
-  return { open, setOpen, pinned, box, hover }
-}
-
 export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }: {
   profile: Profile
   onTour?: () => void
@@ -64,7 +26,6 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
   onAccent: (name: string) => void
 }) {
   const nav = useNavigate()
-  const { open, setOpen, pinned, box, hover } = useStackOpen()
   const { t, i18n } = useTranslation()
   const showX = profile.has_x_linked
   const nums: [string, number][] = [
@@ -80,11 +41,9 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
       <div className="flex items-start justify-between">
         <img className={`size-20 rounded-full bg-d-light ${profile.banner_url ? 'border-4 border-background -mt-10' : ''}`} src={profile.avatar_url} alt="" />
         <div className="flex items-center">
-          <div className="pointer-events-none relative h-9 w-[224px] max-w-full" ref={box}>
+          <div className="group/ic relative h-9 w-[224px] max-w-full">
           <div
-            className={`pointer-events-auto absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center transition-opacity ${open ? 'pointer-events-none opacity-0 duration-150' : 'opacity-100 delay-100 duration-200'}`}
-            onPointerEnter={(e) => { if (e.pointerType === 'mouse') hover(true) }}
-            onPointerDown={(e) => { if (e.pointerType !== 'mouse') { pinned.current = true; setOpen(true) } }}
+            className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center opacity-100 transition-opacity duration-150 group-hover/ic:opacity-0 group-has-[:focus-visible]/ic:opacity-0 group-has-[[aria-expanded=true]]/ic:opacity-0 [@media(hover:none)]:opacity-0 group-hover/ic:pointer-events-none group-has-[:focus-visible]/ic:pointer-events-none group-has-[[aria-expanded=true]]/ic:pointer-events-none [@media(hover:none)]:pointer-events-none"
           >
             {STACK.map((I, k) => (
               <span key={k} className={`flex size-8 items-center justify-center rounded-full border-2 border-background bg-d-light text-d-text2 ${k ? '-ml-3' : ''}`}><I className="size-4" /></span>
@@ -92,9 +51,7 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
             <span className="ml-1.5 text-xs font-medium text-d-text3">+3</span>
           </div>
           <div
-            className={`absolute right-0 top-0 flex items-center transition-[opacity,transform] ease-[cubic-bezier(0.32,0.72,0,1)] ${open ? 'pointer-events-auto translate-x-0 opacity-100 duration-300' : 'pointer-events-none translate-x-2 opacity-0 duration-150'}`}
-            onPointerEnter={(e) => { if (e.pointerType === 'mouse') hover(true) }}
-            onPointerDownCapture={(e) => { pinned.current = e.pointerType !== 'mouse' }}
+            className="pointer-events-none absolute right-0 top-0 flex translate-x-2 items-center opacity-0 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover/ic:pointer-events-auto group-has-[:focus-visible]/ic:pointer-events-auto group-has-[[aria-expanded=true]]/ic:pointer-events-auto [@media(hover:none)]:pointer-events-auto group-hover/ic:translate-x-0 group-has-[:focus-visible]/ic:translate-x-0 group-has-[[aria-expanded=true]]/ic:translate-x-0 [@media(hover:none)]:translate-x-0 group-hover/ic:opacity-100 group-has-[:focus-visible]/ic:opacity-100 group-has-[[aria-expanded=true]]/ic:opacity-100 [@media(hover:none)]:opacity-100"
           >
           {onTour && (
           <Slot><Tip label={t('nb.tour')}>
