@@ -32,8 +32,17 @@ const useStackOpen = () => {
       if (box.current?.contains(e.target as Node) || (e.target as Element).closest?.('[data-radix-popper-content-wrapper]')) return
       pinned.current = false; setOpen(false)
     }
+    // 表示が切り替わっても確実に閉じられるよう、enter/leave ではなくカーソル位置の範囲判定で畳む
+    const m = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' || pinned.current || document.querySelector('[data-radix-popper-content-wrapper]')) return
+      const r = box.current?.getBoundingClientRect()
+      const inside = !!r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6
+      if (inside) window.clearTimeout(timer.current)
+      else { window.clearTimeout(timer.current); timer.current = window.setTimeout(() => setOpen(false), 180) }
+    }
     document.addEventListener('pointerdown', h)
-    return () => document.removeEventListener('pointerdown', h)
+    document.addEventListener('pointermove', m)
+    return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('pointermove', m); window.clearTimeout(timer.current) }
   }, [open])
   return { open, setOpen, pinned, box, hover }
 }
@@ -77,7 +86,6 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
           <div
             className={`absolute right-0 top-0 flex items-center transition-[opacity,transform] ease-[cubic-bezier(0.32,0.72,0,1)] ${open ? 'pointer-events-auto translate-x-0 opacity-100 duration-300' : 'pointer-events-none translate-x-2 opacity-0 duration-150'}`}
             onPointerEnter={(e) => { if (e.pointerType === 'mouse') hover(true) }}
-            onPointerLeave={(e) => { if (e.pointerType === 'mouse' && !pinned.current && !document.querySelector('[data-radix-popper-content-wrapper]')) hover(false) }}
             onPointerDownCapture={(e) => { pinned.current = e.pointerType !== 'mouse' }}
           >
           {onTour && (
