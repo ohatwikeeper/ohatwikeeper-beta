@@ -459,7 +459,7 @@ https://x.com/user/status/1111111111111111111`}</Code>
         <H2>CLI「ohax」</H2>
         <P>ターミナルで、プロフィール、グラフ、草カレンダー、アワードを表示できます。インストール方法は3つあります。</P>
         <H3>npm</H3>
-        <Code>{`npm i -g @lapius/ohatwikeeper-cli`}</Code>
+        <Code>{`npm i -g @ohatwikeeper/cli`}</Code>
         <H3>Go</H3>
         <Code>{`go install github.com/lapius7/ohatwikeeper-cli/cmd/ohax@latest`}</Code>
         <H3>シェルスクリプト（Linux / Mac）</H3>
