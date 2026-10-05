@@ -1,4 +1,5 @@
 import i18n from '@/i18n'
+import { DisconnectButton } from '@/components/ui/disconnect-button'
 import { Switch } from '@/components/ui/switch'
 import { confirmDialog } from '@/lib/confirm'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -340,16 +341,7 @@ function AccountTab({
             </div>
 
             {u.x_id ? (
-              <Button variant="destructive" size="sm"
-                onClick={async () => {
-                  if (await confirmDialog(t('st.unlinkX?'))) {
-                    runAction(() => apiCall('/unlink', 'POST', { provider: 'x' }), t('st.unlinkedX'))
-                  }
-                }}
-                className="border-red-500/30"
-              >
-                {t('st.unlink')}
-              </Button>
+              <DisconnectButton onConfirm={() => runAction(() => apiCall('/unlink', 'POST', { provider: 'x' }), t('st.unlinkedX'))} />
             ) : (
               <a
                 href={CONFIG.EXTERNAL.X_LOGIN('settings')}
@@ -370,11 +362,7 @@ function AccountTab({
               </div>
             </div>
             {u.lapount_linked ? (
-              <Button variant="destructive" size="sm" className="border-red-500/30"
-                onClick={async () => {
-                  if (await confirmDialog('Lapountの連携を解除しますか?')) runAction(() => apiCall('/unlink', 'POST', { provider: 'lapount' }), 'Lapountの連携を解除しました')
-                }}
-              >{t('st.unlink')}</Button>
+              <DisconnectButton onConfirm={() => runAction(() => apiCall('/unlink', 'POST', { provider: 'lapount' }), 'Lapountの連携を解除しました')} />
             ) : (
               <a href="/auth/lapount/start?r=/settings" className="px-3 py-1.5 rounded-lg bg-d-bg border border-d-border text-d-text text-xs font-semibold">{t('st.link')}</a>
             )}
@@ -399,16 +387,7 @@ function AccountTab({
             </div>
 
             {u.discord_id ? (
-              <Button variant="destructive" size="sm"
-                onClick={async () => {
-                  if (await confirmDialog(t('st.unlinkD?'))) {
-                    runAction(() => apiCall('/unlink', 'POST', { provider: 'discord' }), t('st.unlinkedD'))
-                  }
-                }}
-                className="border-red-500/30"
-              >
-                {t('st.unlink')}
-              </Button>
+              <DisconnectButton onConfirm={() => runAction(() => apiCall('/unlink', 'POST', { provider: 'discord' }), t('st.unlinkedD'))} />
             ) : (
               <a
                 href="/login?provider=discord&r=settings"
