@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { OtpField } from '@/components/ui/otp-field'
 
-type Res = { ok: boolean; message?: string; email?: string; pending?: string | null; resend_after?: number }
+type Res = { ok: boolean; message?: string; email?: string; pending?: string | null; resend_after?: number; expires_in?: number }
 
 const call = async (body: object): Promise<Res & { status: number }> => {
   const r = await fetch('/app-api/email_change', {
@@ -35,9 +35,18 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
   // 閉じるアニメーション中に中身が切り替わらないよう、状態のリセットは閉じ終わってから行う
   const closeForm = () => { setAdding(false); setError(''); window.setTimeout(() => { setPending(null); setOtp(''); setEmail(''); setDone(false) }, 400) }
   const [wait, setWait] = useState(0)
+  const [exp, setExp] = useState(0)
+  const expire = () => { closeForm(); toast.error('入力時間(10分)が過ぎました。もう一度やり直してください。') }
+  useEffect(() => {
+    if (!pending || !exp) return
+    const id = setTimeout(expire, Math.max(0, exp - Date.now()))
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending, exp])
+  useEffect(() => { if (otp) setOtpError('') }, [otp])
 
   useEffect(() => {
-    call({ action: 'status' }).then((d) => { setCurrent(d.email ?? ''); setPending(d.pending ?? null); setAdding(!!d.pending); setWait(d.resend_after ?? 0) })
+    call({ action: 'status' }).then((d) => { setCurrent(d.email ?? ''); setPending(d.pending ?? null); setAdding(!!d.pending); setWait(d.resend_after ?? 0); if (d.pending) setExp(Date.now() + (d.expires_in ?? 600) * 1000) })
   }, [])
 
   useEffect(() => {
@@ -50,7 +59,8 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
     setBusy(true); setError(''); setOtpError('')
     const d = await call(body).catch(() => ({ ok: false, message: i18n.t('em.netFail'), status: 0 }))
     setBusy(false)
-    if (d.ok) onOk(d); else if (body && (body as { action?: string }).action === 'verify_otp') { setOtpError(d.message ?? t('st.err')); setOtp('') } else setError(d.message ?? t('st.err'))
+    if (d.ok) onOk(d); else if (d.status === 410) expire()
+    else if (body && (body as { action?: string }).action === 'verify_otp') { setOtpError(d.message ?? t('st.err')); setOtp('') } else setError(d.message ?? t('st.err'))
   }
 
   return (
@@ -62,7 +72,7 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
         {error && <div className="mb-4 rounded-lg border border-d-danger/40 bg-d-danger/10 px-3 py-2 text-sm text-d-danger">{error}</div>}
 
         {!pending ? (
-          <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); run({ action: 'request_change', new_email: email }, (d) => { setPending(d.email ?? email); setWait(d.resend_after ?? 60); toast.success(d.message) }) }}>
+          <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); run({ action: 'request_change', new_email: email }, (d) => { setPending(d.email ?? email); setWait(d.resend_after ?? 60); setExp(Date.now() + 600000); toast.success(d.message) }) }}>
             <label className="block text-xs font-semibold text-d-text2">{t('em.newLabel')}</label>
             <Input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
             <Button type="submit" disabled={busy || !email} className="w-full">{busy ? t('st.sending') : t('em.sendOtp')}</Button>
@@ -73,7 +83,7 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
             <p className="text-sm text-d-text2"><span className="font-mono">{pending}</span><br /><span className="whitespace-nowrap">{t('em.otpHint').trim()}</span></p>
             <OtpField value={otp} onChange={setOtp} disabled={busy || done} success={done} error={otpError} onComplete={() => otpForm.current?.requestSubmit()} />
             {done && <div className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-400 animate-in fade-in zoom-in-95 duration-300"><CheckCircle2 className="size-5" />{t('em.done')}</div>}
-            <Button type="button" variant="outline" size="sm" className="w-full" disabled={busy || done || wait > 0} onClick={() => run({ action: 'request_change', new_email: pending }, (d) => { setWait(d.resend_after ?? 60); setOtp(''); toast.success(t('em.resent')) })}><RotateCw className="mr-1 size-3.5" />{wait > 0 ? t('em.resendIn', { s: wait }) : t('em.resend')}</Button>
+            <Button type="button" variant="outline" size="sm" className="w-full" disabled={busy || done || wait > 0} onClick={() => run({ action: 'request_change', new_email: pending }, (d) => { setWait(d.resend_after ?? 60); setExp(Date.now() + 600000); setOtp(''); toast.success(t('em.resent')) })}><RotateCw className="mr-1 size-3.5" />{wait > 0 ? t('em.resendIn', { s: wait }) : t('em.resend')}</Button>
             <Button type="button" variant="ghost" size="xs" className="w-full text-d-text3" disabled={done} onClick={() => run({ action: 'cancel' }, closeForm)}>{t('em.cancel')}</Button>
           </form>
         )}

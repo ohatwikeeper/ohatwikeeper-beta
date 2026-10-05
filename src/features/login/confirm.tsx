@@ -45,6 +45,7 @@ export default function ConfirmLoginPage() {
 
   const otpForm = useRef<HTMLFormElement>(null)
   const [otpErr, setOtpErr] = useState<string | null>(null)
+  useEffect(() => { if (otp) setOtpErr(null) }, [otp])
   const run = async (fn: () => Promise<void>, isOtp = false) => { setBusy(true); setErr(null); setOtpErr(null); try { await fn() } catch (e) { if (isOtp) setOtpErr((e as Error).message); else setErr((e as Error).message); setOtp('') } finally { setBusy(false) } }
   if (!reg) return null
   const name = reg.provider === 'discord' ? reg.username : '@' + reg.username
