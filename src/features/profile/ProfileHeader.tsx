@@ -13,6 +13,11 @@ import { Link } from 'react-router-dom'
 import NotificationBell from '@/features/profile/NotificationBell'
 import Tip from '@/components/dashboard-ui/Tip'
 
+// 普段は重ねて表示し、ホバー/フォーカスで展開するアイコン列(タッチ端末は常時展開)
+const Slot = ({ children }: { children: React.ReactNode }) => (
+  <span className="relative -ml-6 flex rounded-full bg-background ring-2 ring-background transition-[margin] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] first:ml-0 group-focus-within/ic:ml-1 group-hover/ic:ml-1 [@media(hover:none)]:ml-1 [@media(hover:none)]:first:ml-0 hover:z-10">{children}</span>
+)
+
 export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }: {
   profile: Profile
   onTour?: () => void
@@ -36,9 +41,9 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
       )}
       <div className="flex items-start justify-between">
         <img className={`size-20 rounded-full bg-d-light ${profile.banner_url ? 'border-4 border-background -mt-10' : ''}`} src={profile.avatar_url} alt="" />
-        <div className="flex items-center gap-1">
+        <div className="group/ic flex items-center py-1 pl-6">
           {onTour && (
-          <Tip label={t('nb.tour')}>
+          <Slot><Tip label={t('nb.tour')}>
             <button
               type="button"
               onClick={onTour}
@@ -48,10 +53,10 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
             >
               <Compass className="size-[18px]" />
             </button>
-          </Tip>
+          </Tip></Slot>
           )}
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
-          <Tip label={t('nb.themeSettings')}>
+          <Slot><ThemeToggle theme={theme} onToggle={onToggleTheme} /></Slot>
+          <Slot><Tip label={t('nb.themeSettings')}>
             <button
               type="button"
               onClick={() => nav('/settings/theme')}
@@ -61,10 +66,10 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
             >
               <Palette className="size-[18px]" />
             </button>
-          </Tip>
-          <LanguageSwitcher compact />
-          <NotificationBell />
-          <Tip label={t('nb.logout')}>
+          </Tip></Slot>
+          <Slot><LanguageSwitcher compact /></Slot>
+          <Slot><NotificationBell /></Slot>
+          <Slot><Tip label={t('nb.logout')}>
             <button
               type="button"
               onClick={askLogout}
@@ -74,7 +79,7 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
             >
               <LogOut className="size-[18px]" />
             </button>
-          </Tip>
+          </Tip></Slot>
         </div>
       </div>
       <h1 className="mt-4 font-[family-name:var(--d-serif)] text-2xl font-semibold tracking-tight leading-tight">
