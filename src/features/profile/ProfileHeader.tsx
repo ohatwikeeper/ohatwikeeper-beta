@@ -19,7 +19,7 @@ const Slot = ({ children }: { children: React.ReactNode }) => <span className="f
 const STACK = [Compass, Sun, Palette]
 
 // 通知・言語などのポップアップが開いている間は畳まない(ツールチップは対象外)
-const popupOpen = () => !!document.querySelector('[role="dialog"][data-state="open"], [role="menu"][data-state="open"], [role="listbox"][data-state="open"]')
+const popupOpen = (box: HTMLElement | null) => !!box?.querySelector('[aria-expanded="true"], [data-popup-open]') || !!document.querySelector('[role="dialog"][data-open], [role="menu"][data-open], [role="listbox"][data-open]')
 const useStackOpen = () => {
   const [open, setOpen] = useState(false)
   const pinned = useRef(false)
@@ -31,12 +31,12 @@ const useStackOpen = () => {
     if (!open) return
     // ポップオーバー操作中は開いたままにし、外側を押したら畳む
     const h = (e: PointerEvent) => {
-      if (box.current?.contains(e.target as Node) || (e.target as Element).closest?.('[data-radix-popper-content-wrapper]')) return
+      if (box.current?.contains(e.target as Node) || (e.target as Element).closest?.('[role="dialog"], [role="menu"], [role="listbox"]')) return
       pinned.current = false; setOpen(false)
     }
     // 表示が切り替わっても確実に閉じられるよう、enter/leave ではなくカーソル位置の範囲判定で畳む
     const m = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse' || pinned.current || popupOpen()) return
+      if (e.pointerType !== 'mouse' || pinned.current || popupOpen(box.current)) return
       const r = box.current?.getBoundingClientRect()
       const inside = !!r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6
       if (inside) { window.clearTimeout(timer.current); timer.current = 0 }
