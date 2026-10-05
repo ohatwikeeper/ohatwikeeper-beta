@@ -67,7 +67,7 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
           <div
             className={`pointer-events-auto absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center transition-opacity ${open ? 'pointer-events-none opacity-0 duration-150' : 'opacity-100 delay-100 duration-200'}`}
             onPointerEnter={(e) => { if (e.pointerType === 'mouse') hover(true) }}
-            onClick={() => { pinned.current = true; setOpen(true) }}
+            onPointerDown={(e) => { if (e.pointerType !== 'mouse') { pinned.current = true; setOpen(true) } }}
           >
             {STACK.map((I, k) => (
               <span key={k} className={`flex size-8 items-center justify-center rounded-full border-2 border-background bg-d-light text-d-text2 ${k ? '-ml-3' : ''}`}><I className="size-4" /></span>
@@ -77,8 +77,8 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
           <div
             className={`absolute right-0 top-0 flex items-center transition-[opacity,transform] ease-[cubic-bezier(0.32,0.72,0,1)] ${open ? 'pointer-events-auto translate-x-0 opacity-100 duration-300' : 'pointer-events-none translate-x-2 opacity-0 duration-150'}`}
             onPointerEnter={(e) => { if (e.pointerType === 'mouse') hover(true) }}
-            onPointerLeave={(e) => { if (e.pointerType === 'mouse' && !pinned.current) hover(false) }}
-            onClickCapture={() => { pinned.current = true }}
+            onPointerLeave={(e) => { if (e.pointerType === 'mouse' && !pinned.current && !document.querySelector('[data-radix-popper-content-wrapper]')) hover(false) }}
+            onPointerDownCapture={(e) => { pinned.current = e.pointerType !== 'mouse' }}
           >
           {onTour && (
           <Slot><Tip label={t('nb.tour')}>
