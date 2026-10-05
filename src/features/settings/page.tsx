@@ -140,6 +140,11 @@ export default function SettingsPage() {
     document.title = `${t('st.docTitle')} - おはツイKeeper`
     loadData()
   }, [loadData])
+  useEffect(() => {
+    const h = () => { void loadData() }
+    window.addEventListener('dashboard:reload', h)
+    return () => window.removeEventListener('dashboard:reload', h)
+  }, [loadData])
 
 
   const runAction = async (fn: () => Promise<any>, successMsg?: string) => {

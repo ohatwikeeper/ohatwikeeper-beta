@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { toast } from '@/lib/toast'
 import { CheckCircle2, MailPlus, RotateCw, ShieldCheck } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { OtpField } from '@/components/ui/otp-field'
@@ -31,10 +30,12 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
   const [adding, setAdding] = useState(false)
+  // 閉じるアニメーション中に中身が切り替わらないよう、状態のリセットは閉じ終わってから行う
+  const closeForm = () => { setAdding(false); setError(''); window.setTimeout(() => { setPending(null); setOtp(''); setEmail(''); setDone(false) }, 400) }
   const [wait, setWait] = useState(0)
 
   useEffect(() => {
-    call({ action: 'status' }).then((d) => { setCurrent(d.email ?? ''); setPending(d.pending ?? null); setWait(d.resend_after ?? 0) })
+    call({ action: 'status' }).then((d) => { setCurrent(d.email ?? ''); setPending(d.pending ?? null); setAdding(!!d.pending); setWait(d.resend_after ?? 0) })
   }, [])
 
   useEffect(() => {
@@ -53,10 +54,9 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
   return (
     <div className="space-y-3">
       <p className="text-xs text-d-text3">{t('em.current')}<span className="font-mono">{current || t('st.emailNone')}</span></p>
-      <AnimatePresence initial={false}>
-        {adding || pending ? (
-          <motion.div key="form" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }} className="-mx-1 overflow-hidden px-1">
-        <div className="space-y-3 pb-1 pt-1">
+      <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${adding ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`} aria-hidden={!adding}>
+        <div className="-mx-1 min-h-0 overflow-hidden px-1">
+        <div className={`space-y-3 pb-1 pt-1 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${adding ? 'translate-y-0' : '-translate-y-2'}`}>
         {error && <div className="mb-4 rounded-lg border border-d-danger/40 bg-d-danger/10 px-3 py-2 text-sm text-d-danger">{error}</div>}
 
         {!pending ? (
@@ -64,7 +64,7 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
             <label className="block text-xs font-semibold text-d-text2">{t('em.newLabel')}</label>
             <Input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
             <Button type="submit" disabled={busy || !email} className="w-full">{busy ? t('st.sending') : t('em.sendOtp')}</Button>
-            <Button type="button" variant="ghost" size="xs" className="w-full text-d-text3" onClick={() => { setAdding(false); setError('') }}>{t('em.cancel')}</Button>
+            <Button type="button" variant="ghost" size="xs" className="w-full text-d-text3" onClick={closeForm}>{t('em.cancel')}</Button>
           </form>
         ) : (
           <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); run({ action: 'verify_otp', otp }, (d) => { setDone(true); toast.success(d.message); window.setTimeout(() => { setCurrent(d.email ?? ''); setAdding(false); setPending(null); setAdding(false); setOtp(''); setEmail(''); setDone(false); window.dispatchEvent(new Event('dashboard:reload')); onDone?.() }, 1500) }) }}>
@@ -73,17 +73,17 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
             {done && <div className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-400 animate-in fade-in zoom-in-95 duration-300"><CheckCircle2 className="size-5" />{t('em.done')}</div>}
             <Button type="submit" disabled={busy || done || otp.length !== 8} className="w-full"><ShieldCheck className="mr-1 size-4" />{busy ? t('em.checking') : t('em.verify')}</Button>
             <Button type="button" variant="outline" size="sm" className="w-full" disabled={busy || done || wait > 0} onClick={() => run({ action: 'request_change', new_email: pending }, (d) => { setWait(d.resend_after ?? 60); setOtp(''); toast.success(t('em.resent')) })}><RotateCw className="mr-1 size-3.5" />{wait > 0 ? t('em.resendIn', { s: wait }) : t('em.resend')}</Button>
-            <Button type="button" variant="ghost" size="xs" className="w-full text-d-text3" disabled={done} onClick={() => run({ action: 'cancel' }, () => { setPending(null); setAdding(false); setOtp('') })}>{t('em.cancel')}</Button>
+            <Button type="button" variant="ghost" size="xs" className="w-full text-d-text3" disabled={done} onClick={() => run({ action: 'cancel' }, closeForm)}>{t('em.cancel')}</Button>
           </form>
         )}
         </div>
-          </motion.div>
-        ) : (
-          <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-            <Button type="button" variant="outline" size="sm" onClick={() => { setError(''); setAdding(true) }}><MailPlus className="mr-1 size-4" />{t('em.start')}</Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      </div>
+      <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${adding ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}>
+        <div className="min-h-0 overflow-hidden">
+          <Button type="button" variant="outline" size="sm" tabIndex={adding ? -1 : 0} onClick={() => { setError(''); setAdding(true) }}><MailPlus className="mr-1 size-4" />{t('em.start')}</Button>
+        </div>
+      </div>
     </div>
   )
 }
