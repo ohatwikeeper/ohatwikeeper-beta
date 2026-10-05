@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Compass, LogOut, Palette } from 'lucide-react'
+import { Compass, LogOut, Palette, Sun } from 'lucide-react'
 import { askLogout } from '@/widgets/LogoutDialog'
 import type { Profile } from '@/lib/dashboard/types'
 import { useTranslation } from 'react-i18next'
@@ -13,10 +13,9 @@ import { Link } from 'react-router-dom'
 import NotificationBell from '@/features/profile/NotificationBell'
 import Tip from '@/components/dashboard-ui/Tip'
 
-// 普段は重ねて表示し、ホバー/フォーカスで展開するアイコン列(タッチ端末は常時展開)
-const Slot = ({ children }: { children: React.ReactNode }) => (
-  <span className="relative -ml-6 flex rounded-full bg-background ring-2 ring-background transition-[margin] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] first:ml-0 group-focus-within/ic:ml-1 group-hover/ic:ml-1 [@media(hover:none)]:ml-1 [@media(hover:none)]:first:ml-0 hover:z-10">{children}</span>
-)
+// アイコン列: 普段は小さく重ねて表示し、ホバー/フォーカスで左へ展開(タッチ端末は常時展開)
+const Slot = ({ children }: { children: React.ReactNode }) => <span className="flex shrink-0">{children}</span>
+const STACK = [Compass, Sun, Palette]
 
 export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }: {
   profile: Profile
@@ -41,7 +40,8 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
       )}
       <div className="flex items-start justify-between">
         <img className={`size-20 rounded-full bg-d-light ${profile.banner_url ? 'border-4 border-background -mt-10' : ''}`} src={profile.avatar_url} alt="" />
-        <div className="group/ic flex items-center py-1 pl-6">
+        <div className="group/ic flex items-center rounded-full py-1">
+          <div className="flex items-center overflow-hidden transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] max-w-0 opacity-0 group-hover/ic:max-w-[320px] group-hover/ic:opacity-100 group-focus-within/ic:max-w-[320px] group-focus-within/ic:opacity-100 [@media(hover:none)]:max-w-none [@media(hover:none)]:opacity-100">
           {onTour && (
           <Slot><Tip label={t('nb.tour')}>
             <button
@@ -80,6 +80,13 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
               <LogOut className="size-[18px]" />
             </button>
           </Tip></Slot>
+          </div>
+          <div aria-hidden className="flex items-center pr-1 transition-opacity duration-200 group-hover/ic:pointer-events-none group-hover/ic:w-0 group-hover/ic:opacity-0 group-focus-within/ic:w-0 group-focus-within/ic:opacity-0 [@media(hover:none)]:hidden">
+            {STACK.map((I, k) => (
+              <span key={k} className={`flex size-8 items-center justify-center rounded-full border-2 border-background bg-d-light text-d-text2 ${k ? '-ml-3' : ''}`}><I className="size-4" /></span>
+            ))}
+            <span className="ml-1.5 text-xs font-medium text-d-text3">+3</span>
+          </div>
         </div>
       </div>
       <h1 className="mt-4 font-[family-name:var(--d-serif)] text-2xl font-semibold tracking-tight leading-tight">
