@@ -18,13 +18,15 @@ import Tip from '@/components/dashboard-ui/Tip'
 const Slot = ({ children }: { children: React.ReactNode }) => <span className="flex shrink-0">{children}</span>
 const STACK = [Compass, Sun, Palette]
 
+// 通知・言語などのポップアップが開いている間は畳まない(ツールチップは対象外)
+const popupOpen = () => !!document.querySelector('[role="dialog"][data-state="open"], [role="menu"][data-state="open"], [role="listbox"][data-state="open"]')
 const useStackOpen = () => {
   const [open, setOpen] = useState(false)
   const pinned = useRef(false)
   const box = useRef<HTMLDivElement>(null)
   const timer = useRef<number>(0)
   // 閉じるのは少し遅らせて、境界でのちらつきを防ぐ
-  const hover = (v: boolean) => { window.clearTimeout(timer.current); if (v) setOpen(true); else timer.current = window.setTimeout(() => setOpen(false), 180) }
+  const hover = (v: boolean) => { window.clearTimeout(timer.current); timer.current = 0; if (v) setOpen(true) }
   useEffect(() => {
     if (!open) return
     // ポップオーバー操作中は開いたままにし、外側を押したら畳む
@@ -34,11 +36,11 @@ const useStackOpen = () => {
     }
     // 表示が切り替わっても確実に閉じられるよう、enter/leave ではなくカーソル位置の範囲判定で畳む
     const m = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse' || pinned.current || document.querySelector('[data-radix-popper-content-wrapper]')) return
+      if (e.pointerType !== 'mouse' || pinned.current || popupOpen()) return
       const r = box.current?.getBoundingClientRect()
       const inside = !!r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6
-      if (inside) window.clearTimeout(timer.current)
-      else { window.clearTimeout(timer.current); timer.current = window.setTimeout(() => setOpen(false), 180) }
+      if (inside) { window.clearTimeout(timer.current); timer.current = 0 }
+      else if (!timer.current) timer.current = window.setTimeout(() => { timer.current = 0; setOpen(false) }, 120)
     }
     document.addEventListener('pointerdown', h)
     document.addEventListener('pointermove', m)
