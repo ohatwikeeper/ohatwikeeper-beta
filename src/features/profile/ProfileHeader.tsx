@@ -14,8 +14,8 @@ import NotificationBell from '@/features/profile/NotificationBell'
 import Tip from '@/components/dashboard-ui/Tip'
 
 // アイコン列: 普段は小さく重ねて表示し、ホバー/フォーカスで左へ展開(タッチ端末は常時展開)
+import IconStack from '@/components/dashboard-ui/IconStack'
 const Slot = ({ children }: { children: React.ReactNode }) => <span className="flex shrink-0">{children}</span>
-const STACK = [Compass, Sun, Palette]
 
 export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }: {
   profile: Profile
@@ -41,18 +41,7 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
       <div className="flex items-start justify-between">
         <img className={`size-20 rounded-full bg-d-light ${profile.banner_url ? 'border-4 border-background -mt-10' : ''}`} src={profile.avatar_url} alt="" />
         <div className="flex items-center">
-          <div className="group/ic relative h-9 w-[224px] max-w-full">
-          <div
-            className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center opacity-100 transition-opacity duration-150 group-hover/ic:opacity-0 group-has-[:focus-visible]/ic:opacity-0 group-has-[[data-popup-open]]/ic:opacity-0 [@media(hover:none)_and_(pointer:coarse)]:opacity-0 group-hover/ic:pointer-events-none group-has-[:focus-visible]/ic:pointer-events-none group-has-[[data-popup-open]]/ic:pointer-events-none [@media(hover:none)_and_(pointer:coarse)]:pointer-events-none"
-          >
-            {STACK.map((I, k) => (
-              <span key={k} className={`flex size-8 items-center justify-center rounded-full border-2 border-background bg-d-light text-d-text2 ${k ? '-ml-3' : ''}`}><I className="size-4" /></span>
-            ))}
-            <span className="ml-1.5 text-xs font-medium text-d-text3">+3</span>
-          </div>
-          <div
-            className="pointer-events-none absolute right-0 top-0 flex translate-x-2 items-center opacity-0 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover/ic:pointer-events-auto group-has-[:focus-visible]/ic:pointer-events-auto group-has-[[data-popup-open]]/ic:pointer-events-auto [@media(hover:none)_and_(pointer:coarse)]:pointer-events-auto group-hover/ic:translate-x-0 group-has-[:focus-visible]/ic:translate-x-0 group-has-[[data-popup-open]]/ic:translate-x-0 [@media(hover:none)_and_(pointer:coarse)]:translate-x-0 group-hover/ic:opacity-100 group-has-[:focus-visible]/ic:opacity-100 group-has-[[data-popup-open]]/ic:opacity-100 [@media(hover:none)_and_(pointer:coarse)]:opacity-100"
-          >
+          <IconStack chips={[Compass, Sun, Palette]} total={6}>
           {onTour && (
           <Slot><Tip label={t('nb.tour')}>
             <button
@@ -91,8 +80,7 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
               <LogOut className="size-[18px]" />
             </button>
           </Tip></Slot>
-          </div>
-        </div>
+          </IconStack>
         </div>
       </div>
       <h1 className="mt-4 font-[family-name:var(--d-serif)] text-2xl font-semibold tracking-tight leading-tight">
