@@ -115,6 +115,7 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
           </Tip></Slot>
           </div>
         </div>
+        </div>
       </div>
       <h1 className="mt-4 font-[family-name:var(--d-serif)] text-2xl font-semibold tracking-tight leading-tight">
         {showX ? profile.name : t('nb.user')}
