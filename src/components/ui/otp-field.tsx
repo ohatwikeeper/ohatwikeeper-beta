@@ -1,9 +1,16 @@
+import { useEffect, useRef } from 'react'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 
 /** 8桁の数字コード入力(Lapount の認証コード画面と同じ見た目) */
 export function OtpField({ value, onChange, disabled, success, onComplete }: { value: string; onChange: (v: string) => void; disabled?: boolean; success?: boolean; onComplete?: () => void }) {
+  const box = useRef<HTMLDivElement>(null)
+  const was = useRef(disabled)
+  useEffect(() => {
+    if (was.current && !disabled) window.setTimeout(() => box.current?.querySelector('input')?.focus(), 0)
+    was.current = disabled
+  }, [disabled])
   return (
-    <div className="flex justify-center py-1">
+    <div ref={box} className="flex justify-center py-1">
       <InputOTP maxLength={8} inputMode="numeric" autoComplete="one-time-code" autoFocus pasteTransformer={(s) => s.replace(/\D/g, "")} value={value} onChange={onChange} onComplete={onComplete ? () => window.setTimeout(onComplete, 0) : undefined} disabled={disabled} success={success}>
         <InputOTPGroup>{[0, 1, 2, 3].map((i) => <InputOTPSlot key={i} index={i} />)}</InputOTPGroup>
         <InputOTPSeparator />
