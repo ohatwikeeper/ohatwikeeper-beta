@@ -9,11 +9,11 @@ const CHIP =
   'group-has-[[data-popup-open]]/ic:pointer-events-none group-has-[[data-popup-open]]/ic:opacity-0 ' +
   '[@media(hover:none)_and_(pointer:coarse)]:pointer-events-none [@media(hover:none)_and_(pointer:coarse)]:opacity-0'
 const FULL =
-  'pointer-events-none absolute right-0 top-0 flex items-center opacity-0 blur-md [clip-path:inset(-6px_-6px_-6px_100%)] transition-[clip-path,opacity,filter] duration-300 ease-[cubic-bezier(.22,1,.36,1)] ' +
-  'group-hover/ic:pointer-events-auto group-hover/ic:opacity-100 group-hover/ic:blur-0 group-hover/ic:[clip-path:inset(-6px)] ' +
-  'group-has-[:focus-visible]/ic:pointer-events-auto group-has-[:focus-visible]/ic:opacity-100 group-has-[:focus-visible]/ic:blur-0 group-has-[:focus-visible]/ic:[clip-path:inset(-6px)] ' +
-  'group-has-[[data-popup-open]]/ic:pointer-events-auto group-has-[[data-popup-open]]/ic:opacity-100 group-has-[[data-popup-open]]/ic:blur-0 group-has-[[data-popup-open]]/ic:[clip-path:inset(-6px)] ' +
-  '[@media(hover:none)_and_(pointer:coarse)]:pointer-events-auto [@media(hover:none)_and_(pointer:coarse)]:opacity-100 [@media(hover:none)_and_(pointer:coarse)]:blur-0 [@media(hover:none)_and_(pointer:coarse)]:[clip-path:inset(-6px)]'
+  'pointer-events-none absolute right-0 top-0 flex items-center opacity-0 [filter:blur(8px)] [clip-path:inset(-6px_-6px_-6px_100%)] transition-[clip-path,opacity,filter] duration-300 ease-[cubic-bezier(.22,1,.36,1)] ' +
+  'group-hover/ic:pointer-events-auto group-hover/ic:opacity-100 group-hover/ic:[filter:blur(0)] group-hover/ic:[clip-path:inset(-6px)] ' +
+  'group-has-[:focus-visible]/ic:pointer-events-auto group-has-[:focus-visible]/ic:opacity-100 group-has-[:focus-visible]/ic:[filter:blur(0)] group-has-[:focus-visible]/ic:[clip-path:inset(-6px)] ' +
+  'group-has-[[data-popup-open]]/ic:pointer-events-auto group-has-[[data-popup-open]]/ic:opacity-100 group-has-[[data-popup-open]]/ic:[filter:blur(0)] group-has-[[data-popup-open]]/ic:[clip-path:inset(-6px)] ' +
+  '[@media(hover:none)_and_(pointer:coarse)]:pointer-events-auto [@media(hover:none)_and_(pointer:coarse)]:opacity-100 [@media(hover:none)_and_(pointer:coarse)]:[filter:blur(0)] [@media(hover:none)_and_(pointer:coarse)]:[clip-path:inset(-6px)]'
 
 export default function IconStack({ chips, total, children }: { chips: LucideIcon[]; total?: number; children: React.ReactNode }) {
   return (

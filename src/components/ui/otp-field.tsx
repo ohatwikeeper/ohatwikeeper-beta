@@ -10,8 +10,8 @@ export function OtpField({ value, onChange, disabled, success, onComplete, error
     was.current = disabled
   }, [disabled])
   return (
-    <div ref={box} className="flex flex-col items-center gap-2 py-1">
-      <div key={error ? 'e' : 'n'} className={error ? 'otp-shake rounded-xl ring-2 ring-red-500/60 ring-offset-4 ring-offset-transparent transition-shadow' : 'rounded-xl'}>
+    <div ref={box} className="flex w-full min-w-0 flex-col items-center gap-2 py-1">
+      <div key={error ? 'e' : 'n'} className={error ? 'otp-err max-w-full' : 'max-w-full'}>
       <InputOTP aria-invalid={error ? true : undefined} maxLength={8} inputMode="numeric" autoComplete="one-time-code" autoFocus pasteTransformer={(s) => s.replace(/\D/g, "")} value={value} onChange={onChange} onComplete={onComplete ? () => window.setTimeout(onComplete, 0) : undefined} disabled={disabled} success={success}>
         <InputOTPGroup>{[0, 1, 2, 3].map((i) => <InputOTPSlot key={i} index={i} />)}</InputOTPGroup>
         <InputOTPSeparator />
