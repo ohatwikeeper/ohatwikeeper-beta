@@ -11,7 +11,7 @@ export default function IconStack({ chips, total, children }: { chips: LucideIco
         ))}
         <span className="ml-1.5 text-xs font-medium text-d-text3">+{Math.max(0, (total ?? chips.length + 3) - chips.length)}</span>
       </div>
-      <div className={`pointer-events-none absolute right-0 top-0 flex translate-x-2 items-center opacity-0 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${O('pointer-events-auto')} ${O('translate-x-0')} ${O('opacity-100')}`}>
+      <div className={`pointer-events-none absolute right-0 top-0 flex items-center opacity-0 transition-opacity duration-200 ease-out ${O('pointer-events-auto')} ${O('opacity-100')}`}>
         {children}
       </div>
     </div>
