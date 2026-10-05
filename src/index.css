@@ -2107,3 +2107,7 @@ html:has(.dash-scope) { scrollbar-color: var(--d-border) var(--d-bg); }
 @media (prefers-reduced-motion: reduce) {
   .otp-trail, .otp-trail-success, .otp-bounce, .otp-processing { animation: none; }
 }
+
+@keyframes otp-shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-5px) } 40% { transform: translateX(4px) } 60% { transform: translateX(-3px) } 80% { transform: translateX(2px) } }
+.otp-shake { animation: otp-shake .4s cubic-bezier(.36,.07,.19,.97); }
+@media (prefers-reduced-motion: reduce) { .otp-shake { animation: none } }

@@ -44,7 +44,8 @@ export default function ConfirmLoginPage() {
   }, [])
 
   const otpForm = useRef<HTMLFormElement>(null)
-  const run = async (fn: () => Promise<void>) => { setBusy(true); setErr(null); try { await fn() } catch (e) { setErr((e as Error).message); setOtp('') } finally { setBusy(false) } }
+  const [otpErr, setOtpErr] = useState<string | null>(null)
+  const run = async (fn: () => Promise<void>, isOtp = false) => { setBusy(true); setErr(null); setOtpErr(null); try { await fn() } catch (e) { if (isOtp) setOtpErr((e as Error).message); else setErr((e as Error).message); setOtp('') } finally { setBusy(false) } }
   if (!reg) return null
   const name = reg.provider === 'discord' ? reg.username : '@' + reg.username
 
@@ -62,9 +63,9 @@ export default function ConfirmLoginPage() {
             <Button type="submit" disabled={busy}>{t('lg.sendCode')}</Button>
           </form>
         ) : (
-          <form ref={otpForm} className="mt-8 flex w-full flex-col gap-3" onSubmit={(e) => { e.preventDefault(); if (busy || otp.length < 8) return; void run(async () => { const d = await post('verify', { csrf: reg.csrf, otp, r }); window.location.href = /^\/(?![\/\\])/.test(String(d.redirect)) ? d.redirect : '/dashboard' }) }}>
+          <form ref={otpForm} className="mt-8 flex w-full flex-col gap-3" onSubmit={(e) => { e.preventDefault(); if (busy || otp.length < 8) return; void run(async () => { const d = await post('verify', { csrf: reg.csrf, otp, r }); window.location.href = /^\/(?![\/\\])/.test(String(d.redirect)) ? d.redirect : '/dashboard' }, true) }}>
             <p className="text-sm text-d-text2">{t('lg.otpHint', { e: email })}</p>
-            <OtpField value={otp} onChange={setOtp} disabled={busy} onComplete={() => otpForm.current?.requestSubmit()} />
+            <OtpField value={otp} onChange={setOtp} disabled={busy} error={otpErr} onComplete={() => otpForm.current?.requestSubmit()} />
             <Button type="button" variant="outline" disabled={busy || wait > 0} onClick={() => void run(async () => { const d = await post('request_otp', { csrf: reg.csrf, email, invitation_code: code }); setWait(d.resend_after ?? 60); setOtp('') })}>{wait > 0 ? t('em.resendIn', { s: wait }) : t('em.resend')}</Button>
             <Button type="button" variant="ghost" onClick={() => setStep('email')}>{t('lg.changeEmail')}</Button>
           </form>

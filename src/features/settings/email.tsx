@@ -28,6 +28,7 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
   const [otp, setOtp] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [otpError, setOtpError] = useState('')
   const [done, setDone] = useState(false)
   const otpForm = useRef<HTMLFormElement>(null)
   const [adding, setAdding] = useState(false)
@@ -46,10 +47,10 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
   }, [pending, wait])
 
   const run = async (body: object, onOk: (d: Res) => void) => {
-    setBusy(true); setError('')
+    setBusy(true); setError(''); setOtpError('')
     const d = await call(body).catch(() => ({ ok: false, message: i18n.t('em.netFail'), status: 0 }))
     setBusy(false)
-    if (d.ok) onOk(d); else { setError(d.message ?? t('st.err')); if (body && (body as { action?: string }).action === 'verify_otp') setOtp('') }
+    if (d.ok) onOk(d); else if (body && (body as { action?: string }).action === 'verify_otp') { setOtpError(d.message ?? t('st.err')); setOtp('') } else setError(d.message ?? t('st.err'))
   }
 
   return (
@@ -70,7 +71,7 @@ export function EmailChange({ onDone }: { onDone?: () => void }) {
         ) : (
           <form ref={otpForm} className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (busy || done || otp.length !== 8) return; run({ action: 'verify_otp', otp }, (d) => { setDone(true); toast.success(d.message); window.setTimeout(() => { setCurrent(d.email ?? ''); setAdding(false); setPending(null); setAdding(false); setOtp(''); setEmail(''); setDone(false); window.dispatchEvent(new Event('dashboard:reload')); onDone?.() }, 1500) }) }}>
             <p className="text-sm text-d-text2"><span className="font-mono">{pending}</span><br /><span className="whitespace-nowrap">{t('em.otpHint').trim()}</span></p>
-            <OtpField value={otp} onChange={setOtp} disabled={busy || done} success={done} onComplete={() => otpForm.current?.requestSubmit()} />
+            <OtpField value={otp} onChange={setOtp} disabled={busy || done} success={done} error={otpError} onComplete={() => otpForm.current?.requestSubmit()} />
             {done && <div className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-400 animate-in fade-in zoom-in-95 duration-300"><CheckCircle2 className="size-5" />{t('em.done')}</div>}
             <Button type="button" variant="outline" size="sm" className="w-full" disabled={busy || done || wait > 0} onClick={() => run({ action: 'request_change', new_email: pending }, (d) => { setWait(d.resend_after ?? 60); setOtp(''); toast.success(t('em.resent')) })}><RotateCw className="mr-1 size-3.5" />{wait > 0 ? t('em.resendIn', { s: wait }) : t('em.resend')}</Button>
             <Button type="button" variant="ghost" size="xs" className="w-full text-d-text3" disabled={done} onClick={() => run({ action: 'cancel' }, closeForm)}>{t('em.cancel')}</Button>
