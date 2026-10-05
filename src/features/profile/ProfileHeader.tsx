@@ -63,9 +63,9 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
       <div className="flex items-start justify-between">
         <img className={`size-20 rounded-full bg-d-light ${profile.banner_url ? 'border-4 border-background -mt-10' : ''}`} src={profile.avatar_url} alt="" />
         <div className="flex items-center">
-          <div className="pointer-events-none relative mr-3 h-9 w-[236px]" ref={box}>
+          <div className="pointer-events-none relative h-9 w-[224px] max-w-full" ref={box}>
           <div
-            className={`pointer-events-auto absolute right-0 top-1/2 flex -translate-y-1/2 cursor-pointer items-center pr-1 transition-opacity ${open ? 'pointer-events-none opacity-0 duration-150' : 'opacity-100 delay-100 duration-200'}`}
+            className={`pointer-events-auto absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center transition-opacity ${open ? 'pointer-events-none opacity-0 duration-150' : 'opacity-100 delay-100 duration-200'}`}
             onPointerEnter={(e) => { if (e.pointerType === 'mouse') hover(true) }}
             onClick={() => { pinned.current = true; setOpen(true) }}
           >
