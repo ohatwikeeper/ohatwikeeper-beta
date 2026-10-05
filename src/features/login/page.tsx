@@ -98,6 +98,9 @@ export default function LoginPage() {
                 </Button>
               </form>
             ))}
+            <a href={'/auth/lapount/start' + (r ? `?r=${encodeURIComponent(r)}` : '')} className="flex h-14 w-full items-center justify-center gap-3 rounded-full border border-d-border bg-d-bg text-[15px] font-bold text-d-text transition-transform hover:bg-d-border/40 active:scale-[0.97]">
+              <span className="text-lg font-black text-d-accent">L</span>Lapount でログイン
+            </a>
           </div>
           </div>
 
