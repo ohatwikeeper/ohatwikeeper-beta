@@ -44,7 +44,13 @@ const useStackOpen = () => {
     }
     document.addEventListener('pointerdown', h)
     document.addEventListener('pointermove', m)
-    return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('pointermove', m); window.clearTimeout(timer.current) }
+    // カーソルがウィンドウ外へ出た/ウィンドウが非アクティブになった場合は pointermove が来ないため別途畳む
+    const out = (e: MouseEvent) => { if (!e.relatedTarget && !pinned.current && !popupOpen(box.current)) { window.clearTimeout(timer.current); timer.current = 0; setOpen(false) } }
+    const blur = () => { if (!pinned.current && !popupOpen(box.current)) setOpen(false) }
+    document.documentElement.addEventListener('mouseleave', out)
+    document.addEventListener('mouseout', out)
+    window.addEventListener('blur', blur)
+    return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('pointermove', m); document.documentElement.removeEventListener('mouseleave', out); document.removeEventListener('mouseout', out); window.removeEventListener('blur', blur); window.clearTimeout(timer.current) }
   }, [open])
   return { open, setOpen, pinned, box, hover }
 }
