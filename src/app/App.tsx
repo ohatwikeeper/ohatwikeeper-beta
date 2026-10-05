@@ -15,6 +15,7 @@ import TopPage from '@/pages/top/TopPage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 
 const GraphPage = lazy(() => import('@/pages/public/GraphPage'))
+const ApiDocsPage = lazy(() => import('@/features/dev/ApiDocsPage'))
 const AwardsPage = lazy(() => import('@/pages/public/AwardsPage'))
 const SearchPage = lazy(() => import('@/pages/search/SearchPage'))
 const GalleryPage = lazy(() => import('@/pages/public/GalleryPage'))
@@ -70,12 +71,6 @@ const SPLASH_CURSOR_ENABLED = false
 
 const splashCursorDisabled =
   !SPLASH_CURSOR_ENABLED || new URLSearchParams(window.location.search).get('nocursor') === '1'
-
-// サーバーが配信するページ(Scalar)へ SPA 内から来たときは、フル読み込みで取り直す
-function HardRedirect({ to }: { to: string }) {
-  useEffect(() => { window.location.replace(to) }, [to])
-  return <PageLoader />
-}
 
 function App() {
   useEffect(() => {
@@ -134,7 +129,7 @@ function App() {
           <Route path="/search" element={<Suspense fallback={<PageLoader />}><SearchPage /></Suspense>} />
           <Route path="/dev" element={<Suspense fallback={<PageLoader />}><DevPage /></Suspense>} />
           <Route path="/dev/api-docs" element={<Navigate to="/api-docs" replace />} />
-          <Route path="/api-docs" element={<HardRedirect to="/api-docs" />} />
+          <Route path="/api-docs" element={<Suspense fallback={<PageLoader />}><ApiDocsPage /></Suspense>} />
           <Route path="/terminal" element={<Suspense fallback={<PageLoader />}><TerminalPage /></Suspense>} />
           <Route path="/howtouse" element={<Suspense fallback={<PageLoader />}><HowToUsePage /></Suspense>} />
           <Route path="/howtouse/:section" element={<Suspense fallback={<PageLoader />}><HowToUsePage /></Suspense>} />
