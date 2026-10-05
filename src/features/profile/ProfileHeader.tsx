@@ -19,7 +19,7 @@ const Slot = ({ children }: { children: React.ReactNode }) => <span className="f
 const STACK = [Compass, Sun, Palette]
 
 // 通知・言語などのポップアップが開いている間は畳まない(ツールチップは対象外)
-const popupOpen = (box: HTMLElement | null) => !!box?.querySelector('[aria-expanded="true"], [data-popup-open]') || !!document.querySelector('[role="dialog"][data-open], [role="menu"][data-open], [role="listbox"][data-open]')
+const popupOpen = (box: HTMLElement | null) => !!box?.querySelector('[aria-expanded="true"]')
 const useStackOpen = () => {
   const [open, setOpen] = useState(false)
   const pinned = useRef(false)
