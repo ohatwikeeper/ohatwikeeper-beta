@@ -1,6 +1,5 @@
 import { DateRangePicker } from '@/components/arc/date-range-picker/date-range-picker'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'motion/react'
 import { X } from 'lucide-react'
 import AppEmpty from '@/components/dashboard-ui/AppEmpty'
 import { useEffect, useMemo, useRef, useState } from 'react'
