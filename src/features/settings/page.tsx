@@ -71,6 +71,7 @@ interface SettingsData {
     is_public: boolean
     api_key: string | null
     lapount_linked?: boolean
+    lapount_handle?: string | null
     discord_id: string | null
     discord_username: string | null
     x_id: string | null
@@ -365,7 +366,7 @@ function AccountTab({
               <div className="w-10 h-10 rounded-xl bg-d-accent/15 border border-d-accent/40 flex items-center justify-center text-sm font-black text-d-accent">L</div>
               <div>
                 <div className="font-semibold text-sm text-d-text">Lapount</div>
-                <div className="text-xs text-d-text3">{u.lapount_linked ? <span className="text-d-text2">{t('st.linked')}</span> : t('st.unlinked')}</div>
+                <div className="text-xs text-d-text3">{u.lapount_linked ? <span className="text-d-text2">{u.lapount_handle ? `@${u.lapount_handle}` : t('st.linked')}</span> : t('st.unlinked')}</div>
               </div>
             </div>
             {u.lapount_linked ? (
