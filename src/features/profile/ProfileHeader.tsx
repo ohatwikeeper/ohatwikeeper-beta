@@ -22,6 +22,9 @@ const useStackOpen = () => {
   const [open, setOpen] = useState(false)
   const pinned = useRef(false)
   const box = useRef<HTMLDivElement>(null)
+  const timer = useRef<number>(0)
+  // 閉じるのは少し遅らせて、境界でのちらつきを防ぐ
+  const hover = (v: boolean) => { window.clearTimeout(timer.current); if (v) setOpen(true); else timer.current = window.setTimeout(() => setOpen(false), 180) }
   useEffect(() => {
     if (!open) return
     // ポップオーバー操作中は開いたままにし、外側を押したら畳む
@@ -32,7 +35,7 @@ const useStackOpen = () => {
     document.addEventListener('pointerdown', h)
     return () => document.removeEventListener('pointerdown', h)
   }, [open])
-  return { open, setOpen, pinned, box }
+  return { open, setOpen, pinned, box, hover }
 }
 
 export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }: {
@@ -44,7 +47,7 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
   onAccent: (name: string) => void
 }) {
   const nav = useNavigate()
-  const { open, setOpen, pinned, box } = useStackOpen()
+  const { open, setOpen, pinned, box, hover } = useStackOpen()
   const { t, i18n } = useTranslation()
   const showX = profile.has_x_linked
   const nums: [string, number][] = [
@@ -60,10 +63,11 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
       <div className="flex items-start justify-between">
         <img className={`size-20 rounded-full bg-d-light ${profile.banner_url ? 'border-4 border-background -mt-10' : ''}`} src={profile.avatar_url} alt="" />
         <div className="flex items-center">
-          <div className="pointer-events-none relative h-9 w-[236px]" ref={box}>
+          <div className="pointer-events-none relative mr-3 h-9 w-[236px]" ref={box}>
           <div
-            className={`pointer-events-auto absolute right-0 top-1/2 flex -translate-y-1/2 cursor-pointer items-center pr-1 transition-[opacity,transform] duration-200 ease-out ${open ? 'pointer-events-none scale-95 opacity-0' : 'opacity-100'}`}
-            onPointerEnter={() => setOpen(true)}
+            className={`pointer-events-auto absolute right-0 top-1/2 flex -translate-y-1/2 cursor-pointer items-center pr-1 transition-opacity ${open ? 'pointer-events-none opacity-0 duration-150' : 'opacity-100 delay-100 duration-200'}`}
+            onPointerEnter={(e) => { if (e.pointerType === 'mouse') hover(true) }}
+            onClick={() => { pinned.current = true; setOpen(true) }}
           >
             {STACK.map((I, k) => (
               <span key={k} className={`flex size-8 items-center justify-center rounded-full border-2 border-background bg-d-light text-d-text2 ${k ? '-ml-3' : ''}`}><I className="size-4" /></span>
@@ -71,8 +75,9 @@ export default function ProfileHeader({ profile, onTour, theme, onToggleTheme }:
             <span className="ml-1.5 text-xs font-medium text-d-text3">+3</span>
           </div>
           <div
-            className={`absolute right-0 top-0 flex origin-right items-center transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${open ? 'pointer-events-auto translate-x-0 scale-100 opacity-100' : 'pointer-events-none translate-x-3 scale-90 opacity-0'}`}
-            onPointerLeave={() => { if (!pinned.current) setOpen(false) }}
+            className={`absolute right-0 top-0 flex items-center transition-[opacity,transform] ease-[cubic-bezier(0.32,0.72,0,1)] ${open ? 'pointer-events-auto translate-x-0 opacity-100 duration-300' : 'pointer-events-none translate-x-2 opacity-0 duration-150'}`}
+            onPointerEnter={(e) => { if (e.pointerType === 'mouse') hover(true) }}
+            onPointerLeave={(e) => { if (e.pointerType === 'mouse' && !pinned.current) hover(false) }}
             onClickCapture={() => { pinned.current = true }}
           >
           {onTour && (
