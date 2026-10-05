@@ -71,6 +71,12 @@ const SPLASH_CURSOR_ENABLED = false
 const splashCursorDisabled =
   !SPLASH_CURSOR_ENABLED || new URLSearchParams(window.location.search).get('nocursor') === '1'
 
+// サーバーが配信するページ(Scalar)へ SPA 内から来たときは、フル読み込みで取り直す
+function HardRedirect({ to }: { to: string }) {
+  useEffect(() => { window.location.replace(to) }, [to])
+  return <PageLoader />
+}
+
 function App() {
   useEffect(() => {
     // マウス/タップでボタンを押した後は、その後のキー操作でフォーカス枠(選択状態)が出ないようフォーカスを外す
@@ -128,6 +134,7 @@ function App() {
           <Route path="/search" element={<Suspense fallback={<PageLoader />}><SearchPage /></Suspense>} />
           <Route path="/dev" element={<Suspense fallback={<PageLoader />}><DevPage /></Suspense>} />
           <Route path="/dev/api-docs" element={<Navigate to="/api-docs" replace />} />
+          <Route path="/api-docs" element={<HardRedirect to="/api-docs" />} />
           <Route path="/terminal" element={<Suspense fallback={<PageLoader />}><TerminalPage /></Suspense>} />
           <Route path="/howtouse" element={<Suspense fallback={<PageLoader />}><HowToUsePage /></Suspense>} />
           <Route path="/howtouse/:section" element={<Suspense fallback={<PageLoader />}><HowToUsePage /></Suspense>} />
