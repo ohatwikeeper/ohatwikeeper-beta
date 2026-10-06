@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, ArrowUpToLine, ArrowDownToLine, Command, Copy, Download, ExternalLink, FileText, Home, Image as ImageIcon, Link2, Printer, RotateCw, Search, Settings, Share2, Table2, TableProperties, TextCursorInput, Columns3, Send } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpToLine, ArrowDownToLine, Command, Copy, Download, Eye, Trash2, ExternalLink, FileText, Image as ImageIcon, Link2, RotateCw, Search, Share2, Table2, TableProperties, TextCursorInput, Columns3, Send } from 'lucide-react'
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { toast } from '@/lib/toast'
 
@@ -12,6 +11,7 @@ type Ctx =
   | { kind: 'text'; text: string }
   | { kind: 'link'; href: string; text: string }
   | { kind: 'image'; src: string }
+  | { kind: 'record'; id: string; url: string; detail: string }
   | { kind: 'cell'; cell: string; row: string; col: string; table: string }
 
 const NATIVE = 'input,textarea,select,[contenteditable=""],[contenteditable="true"],[data-ctx-native]'
@@ -23,6 +23,8 @@ function detect(t: Element): Ctx {
   if (a) return { kind: 'link', href: a.href, text: a.textContent?.trim() ?? '' }
   const img = t.closest<HTMLImageElement>('img[src]')
   if (img) return { kind: 'image', src: img.currentSrc || img.src }
+  const rec = t.closest<HTMLElement>('[data-ctx-record]')
+  if (rec) return { kind: 'record', id: rec.dataset.ctxRecord!, url: rec.dataset.ctxUrl ?? '', detail: rec.dataset.ctxDetail ?? '' }
   const cell = t.closest<HTMLElement>('td,th')
   const row = t.closest<HTMLTableRowElement>('tr')
   if (cell && row) {
@@ -42,7 +44,6 @@ function detect(t: Element): Ctx {
 
 export default function SiteContextMenu({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
-  const nav = useNavigate()
   const [ctx, setCtx] = useState<Ctx>({ kind: 'page' })
 
   const copy = async (s: string, msg: string) => {
@@ -111,6 +112,16 @@ export default function SiteContextMenu({ children }: { children: ReactNode }) {
             <ContextMenuSeparator />
           </ContextMenuGroup>
         )}
+        {ctx.kind === 'record' && (
+          <ContextMenuGroup>
+            <Item icon={Eye} label={t('ctx.recDetail', 'ツイートの詳細を見る')} onSelect={() => document.dispatchEvent(new CustomEvent('ctx-record', { detail: { action: 'tweet', id: ctx.id } }))} />
+            {ctx.detail && <Item icon={ExternalLink} label={t('ctx.recDetailPage', '詳細ページを開く')} onSelect={() => open(`/details/${ctx.detail}`)} />}
+            {ctx.url && <Item icon={ExternalLink} label={t('ctx.recOrig', '元のツイートを開く')} onSelect={() => open(ctx.url)} />}
+            {ctx.url && <Item icon={Link2} label={t('ctx.recCopy', 'ツイートURLをコピー')} onSelect={() => copy(ctx.url, t('ctx.copiedUrl', 'URLをコピーしました'))} />}
+            <Item icon={Trash2} label={t('ctx.recDelete', 'このおはツイを削除')} onSelect={() => document.dispatchEvent(new CustomEvent('ctx-record', { detail: { action: 'delete', id: ctx.id } }))} />
+            <ContextMenuSeparator />
+          </ContextMenuGroup>
+        )}
         {ctx.kind === 'cell' && (
           <ContextMenuGroup>
             <Item icon={TextCursorInput} label={t('ctx.copyCell', 'セルをコピー')} onSelect={() => copy(ctx.cell, t('ctx.copied', 'コピーしました'))} />
@@ -128,15 +139,11 @@ export default function SiteContextMenu({ children }: { children: ReactNode }) {
         <ContextMenuSeparator />
         <ContextMenuGroup>
           <Item icon={Command} label={t('ctx.palette', 'コマンドパレットを開く')} onSelect={palette} />
-          <Item icon={Home} label={t('ctx.dash', 'ダッシュボードへ')} onSelect={() => nav('/dashboard')} />
-          <Item icon={Search} label={t('ctx.searchPage', 'ユーザー検索')} onSelect={() => nav('/search')} />
-          <Item icon={Settings} label={t('ctx.settings', '設定')} onSelect={() => nav('/settings')} />
         </ContextMenuGroup>
         <ContextMenuSeparator />
         <ContextMenuGroup>
           <Item icon={Link2} label={t('ctx.copyUrl', 'このページのURLをコピー')} onSelect={() => copy(location.href, t('ctx.copiedUrl', 'URLをコピーしました'))} />
           {typeof navigator.share === 'function' && <Item icon={Share2} label={t('ctx.share', 'このページを共有')} onSelect={() => navigator.share({ title: document.title, url: location.href }).catch(() => {})} />}
-          <Item icon={Printer} label={t('ctx.print', '印刷')} onSelect={() => window.print()} />
           <Item icon={ArrowUpToLine} label={t('ctx.top', 'ページの先頭へ')} onSelect={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
           <Item icon={ArrowDownToLine} label={t('ctx.bottom', 'ページの末尾へ')} onSelect={() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' })} />
         </ContextMenuGroup>
