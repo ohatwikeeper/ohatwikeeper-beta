@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, History, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Trash2, History } from 'lucide-react'
+import { Pagination } from '@/components/arc/pagination/pagination'
 import PageHeader from '@/components/dashboard-ui/PageHeader'
 
 type Item = { id: number; action: 'add' | 'delete'; at: string; public_uuid: string; name: string; screen_name: string; avatar_url: string; url?: string; text?: string; count?: number }
@@ -55,11 +56,10 @@ export default function TimelinePage() {
         })}
       </ol>
       {pages > 1 && (
-        <nav className="mt-4 flex items-center justify-center gap-3 text-sm text-d-text2">
-          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="flex items-center gap-1 rounded-lg border border-d-border px-3 py-1.5 enabled:hover:bg-d-light disabled:opacity-40"><ChevronLeft className="size-4" />前へ</button>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-d-text2">
           <span className="tabular-nums">{page} / {pages}</span>
-          <button disabled={page >= pages} onClick={() => setPage(page + 1)} className="flex items-center gap-1 rounded-lg border border-d-border px-3 py-1.5 enabled:hover:bg-d-light disabled:opacity-40">次へ<ChevronRight className="size-4" /></button>
-        </nav>
+          <Pagination page={page} pageCount={pages} onPageChange={setPage} label="タイムライン" />
+        </div>
       )}
     </div>
   )
