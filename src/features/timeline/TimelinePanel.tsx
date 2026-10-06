@@ -9,7 +9,7 @@ type Rec = { detail_id: string; date: string; likes: number; reposts: number; re
 type Item = { at: string; public_uuid: string; name: string; screen_name: string; avatar_url: string; url?: string; text?: string; record?: Rec | null }
 
 const btn = 'inline-flex h-10 items-center justify-center gap-2 rounded-full border border-d-border px-4 text-sm font-medium text-d-text transition-colors hover:bg-d-med'
-const when = (s: string) => new Date(s.replace(' ', 'T') + (s.includes('Z') || s.includes('+') ? '' : 'Z')).toLocaleString('ja-JP')
+const when = (s: string) => new Date(s.replace(' ', 'T') + (s.includes('Z') || s.includes('+') ? '' : '+09:00')).toLocaleString('ja-JP')
 
 /** タイムラインの「追加」をクリックして開く右サイドパネル。おはツイの情報と各ページへの導線を出す */
 export function TimelinePanel({ item, onClose }: { item: Item | null; onClose: () => void }) {

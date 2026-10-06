@@ -8,7 +8,7 @@ import PageHeader from '@/components/dashboard-ui/PageHeader'
 type Item = { id: number; action: 'add' | 'delete'; at: string; public_uuid: string; name: string; screen_name: string; avatar_url: string; url?: string; text?: string; count?: number; record?: Rec | null }
 type Rec = { detail_id: string; date: string; likes: number; reposts: number; replies: number; views: number; image_url?: string | null; video_url?: string | null }
 
-const dt = (s: string) => new Date(s.replace(' ', 'T') + (s.includes('Z') || s.includes('+') ? '' : 'Z'))
+const dt = (s: string) => new Date(s.replace(' ', 'T') + (s.includes('Z') || s.includes('+') ? '' : '+09:00'))
 const full = (s: string) => dt(s).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
 const dayKey = (s: string) => dt(s).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
 
