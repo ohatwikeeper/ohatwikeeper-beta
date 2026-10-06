@@ -37,10 +37,13 @@ export default function BetaPage() {
       <PageHeader
         icon={diff ? GitCommitHorizontal : FlaskConical}
         title={diff ? 'beta の変更履歴' : 'beta 版の新機能'}
-        desc={diff ? `本番(${info?.base || '最新'})からの変更です。30秒ごとに自動更新されます` : '本番にはまだない機能です。30秒ごとに自動更新されます'}
-        right={diff
-          ? <Link to="/beta" className="text-sm text-d-text2 underline">新機能の一覧へ</Link>
-          : <Link to="/beta/diff" className="text-sm text-d-text2 underline">変更履歴(diff)を見る</Link>}
+        desc={diff ? `本番(${info?.base || '最新'})からの変更です` : '本番にはまだない機能です'}
+        right={<span className="flex items-center gap-4 text-sm">
+          {diff
+            ? <Link to="/beta" className="text-d-text2 underline">新機能の一覧へ</Link>
+            : <Link to="/beta/diff" className="text-d-text2 underline">変更履歴(diff)を見る</Link>}
+          <a href="https://beta.ohatwikeeper.com/dashboard" className="text-d-text underline">beta 版を試す</a>
+        </span>}
       />
       {!info && <p className="text-sm text-d-text3">読み込み中…</p>}
       {info && !diff && (lines.length
