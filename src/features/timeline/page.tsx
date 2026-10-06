@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, History } from 'lucide-react'
+import { Plus, Trash2, History, ChevronLeft, ChevronRight } from 'lucide-react'
 import PageHeader from '@/components/dashboard-ui/PageHeader'
 
 type Item = { id: number; action: 'add' | 'delete'; at: string; public_uuid: string; name: string; screen_name: string; avatar_url: string; url?: string; text?: string; count?: number }
@@ -11,20 +11,16 @@ const dayKey = (s: string) => dt(s).toLocaleDateString('ja-JP', { year: 'numeric
 
 export default function TimelinePage() {
   const [items, setItems] = useState<Item[]>([])
-  const [next, setNext] = useState<number | null>(null)
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
   const [loading, setLoading] = useState(true)
-  const busy = useRef(false)
 
-  const load = useCallback(async (before?: number) => {
-    if (busy.current) return
-    busy.current = true
-    try {
-      const j = await fetch(`/app-api/view/timeline${before ? `?before=${before}` : ''}`).then((r) => r.json())
-      setItems((v) => (before ? [...v, ...j.items] : j.items))
-      setNext(j.next ?? null)
-    } catch { /* 無視 */ } finally { busy.current = false; setLoading(false) }
-  }, [])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    setLoading(true)
+    fetch(`/app-api/view/timeline?page=${page}`).then((r) => r.json())
+      .then((j) => { setItems(j.items); setPages(j.pages); window.scrollTo({ top: 0 }) })
+      .catch(() => {}).finally(() => setLoading(false))
+  }, [page])
 
   let last = ''
   return (
@@ -58,7 +54,13 @@ export default function TimelinePage() {
           )
         })}
       </ol>
-      {next && <button onClick={() => void load(next)} className="mt-2 w-full rounded-lg border border-d-border py-2 text-sm text-d-text2 hover:bg-d-light">もっと見る</button>}
+      {pages > 1 && (
+        <nav className="mt-4 flex items-center justify-center gap-3 text-sm text-d-text2">
+          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="flex items-center gap-1 rounded-lg border border-d-border px-3 py-1.5 enabled:hover:bg-d-light disabled:opacity-40"><ChevronLeft className="size-4" />前へ</button>
+          <span className="tabular-nums">{page} / {pages}</span>
+          <button disabled={page >= pages} onClick={() => setPage(page + 1)} className="flex items-center gap-1 rounded-lg border border-d-border px-3 py-1.5 enabled:hover:bg-d-light disabled:opacity-40">次へ<ChevronRight className="size-4" /></button>
+        </nav>
+      )}
     </div>
   )
 }
