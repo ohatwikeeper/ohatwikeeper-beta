@@ -69,8 +69,11 @@ export default function SiteContextMenu({ children }: { children: ReactNode }) {
   }
   const palette = () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))
   const open = (u: string) => window.open(u, '_blank', 'noopener,noreferrer')
-  const Item = ({ icon: I, label, onSelect }: { icon: typeof Copy; label: string; onSelect: () => void }) => (
-    <ContextMenuItem onClick={onSelect}><I />{label}</ContextMenuItem>
+  const nav = (window as unknown as { navigation?: { canGoBack: boolean; canGoForward: boolean } }).navigation
+  const canBack = nav ? nav.canGoBack : history.length > 1
+  const canFwd = nav ? nav.canGoForward : true
+  const Item = ({ icon: I, label, onSelect, disabled }: { icon: typeof Copy; label: string; onSelect: () => void; disabled?: boolean }) => (
+    <ContextMenuItem onClick={onSelect} disabled={disabled}><I />{label}</ContextMenuItem>
   )
   return (
     <ContextMenu>
@@ -136,8 +139,8 @@ export default function SiteContextMenu({ children }: { children: ReactNode }) {
           </ContextMenuGroup>
         )}
         <ContextMenuGroup>
-          <Item icon={ArrowLeft} label={t('ctx.back', '戻る')} onSelect={() => history.back()} />
-          <Item icon={ArrowRight} label={t('ctx.forward', '進む')} onSelect={() => history.forward()} />
+          <Item icon={ArrowLeft} label={t('ctx.back', '戻る')} disabled={!canBack} onSelect={() => history.back()} />
+          <Item icon={ArrowRight} label={t('ctx.forward', '進む')} disabled={!canFwd} onSelect={() => history.forward()} />
           <Item icon={RotateCw} label={t('ctx.reload', '再読み込み')} onSelect={() => location.reload()} />
         </ContextMenuGroup>
         <ContextMenuSeparator />

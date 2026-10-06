@@ -297,12 +297,18 @@ export default function RecordsSection(props: Props) {
           <button className="text-d-text3" onClick={() => setSel(new Set())}>解除</button>
         </div>
       )}
-      {IS_BETA && prev && (
-        <div className="pointer-events-none fixed z-50 w-72 overflow-hidden rounded-xl border border-d-border bg-d-bg shadow-xl" style={{ left: Math.min(prev.x + 16, window.innerWidth - 300), top: Math.min(prev.y + 16, window.innerHeight - 260) }}>
-          {prev.r.image_url && <img src={prev.r.image_url} alt="" className="h-36 w-full object-cover" />}
-          <p className="line-clamp-5 p-3 text-xs leading-5 text-d-text">{prev.r.text}</p>
-        </div>
-      )}
+      <AnimatePresence>
+        {IS_BETA && prev?.r.image_url && (
+          <motion.img
+            key={prev.r.uniqid}
+            src={prev.r.image_url}
+            alt=""
+            initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+            className="pointer-events-none fixed z-50 max-h-[70vh] max-w-[min(480px,60vw)] rounded-2xl border border-d-border bg-d-bg object-contain shadow-2xl"
+            style={{ left: Math.min(prev.x + 24, window.innerWidth - 500), top: Math.max(12, Math.min(prev.y - 120, window.innerHeight - 420)) }}
+          />
+        )}
+      </AnimatePresence>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <div className="flex flex-wrap items-center gap-3">
           {!props.hideFilters && (<>
