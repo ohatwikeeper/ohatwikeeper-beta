@@ -18,11 +18,11 @@ function useBetaInfo() {
 
 function Patch({ text }: { text: string }) {
   return (
-    <pre className="overflow-x-auto bg-d-light px-4 py-2 text-xs leading-5">
+    <pre className="overflow-x-auto bg-d-light py-2 text-xs leading-5"><div className="w-max min-w-full">
       {text.split('\n').filter((l) => !/^(diff --git|index |--- |\+\+\+ )/.test(l)).map((l, i) => (
-        <div key={i} className={l.startsWith('+') ? 'bg-green-500/15 text-d-text' : l.startsWith('-') ? 'bg-red-500/15 text-d-text' : l.startsWith('@@') ? 'text-d-text3' : 'text-d-text2'}>{l || ' '}</div>
+        <div key={i} className={'px-4 ' + (l.startsWith('+') ? 'bg-green-500/15 text-green-300' : l.startsWith('-') ? 'bg-red-500/15 text-red-300' : l.startsWith('@@') ? 'text-d-text3' : 'text-d-text2')}>{l || ' '}</div>
       ))}
-    </pre>
+    </div></pre>
   )
 }
 
