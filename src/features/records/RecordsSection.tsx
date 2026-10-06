@@ -304,8 +304,8 @@ export default function RecordsSection(props: Props) {
             src={prev.r.image_url}
             alt=""
             initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-            className="pointer-events-none fixed z-50 max-h-[70vh] max-w-[min(480px,60vw)] rounded-2xl border border-d-border bg-d-bg object-contain shadow-2xl"
-            style={{ left: Math.min(prev.x + 24, window.innerWidth - 500), top: Math.max(12, Math.min(prev.y - 120, window.innerHeight - 420)) }}
+            className="pointer-events-none fixed z-50 w-auto rounded-2xl border border-d-border bg-d-bg object-contain shadow-2xl"
+            style={{ maxWidth: 360, maxHeight: 320, left: Math.min(prev.x + 24, window.innerWidth - 380), top: Math.max(12, Math.min(prev.y - 100, window.innerHeight - 340)) }}
           />
         )}
       </AnimatePresence>
