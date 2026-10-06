@@ -1,8 +1,4 @@
 import { ConfirmPill } from './confirm-pill'
-import { useTranslation } from 'react-i18next'
-import { Dialog, DialogContent } from "@/components/arc/dialog/dialog"
-import { HoldToDeleteButton } from "@/components/ui/hold-to-delete-button"
-import { Button } from "@/components/ui/button"
 
 /** 確認ダイアログ。confirm() の代わりに使う(Arc Dialog) */
 function ConfirmDialog({

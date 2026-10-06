@@ -14,19 +14,6 @@ export default function ConfirmHost({ children }: { children: ReactNode }) {
 
   const close = (ok: boolean) => { done.current?.(ok); done.current = null; setOpt(null) }
 
-  return () => setConfirmHandler(null)
-  }, [])
-
-  const close = (ok: boolean) => { done.current?.(ok); done.current = null; setOpt(null) }
-
-  useEffect(() => {
-    if (!opt) return
-    cancelRef.current?.focus()
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') close(false) }
-    window.addEventListener('keydown', k)
-    return () => window.removeEventListener('keydown', k)
-  }, [opt])
-
   return (
     <>
       {children}
