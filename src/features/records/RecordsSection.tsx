@@ -15,6 +15,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { dbtn } from '@/components/dashboard-ui/DButton'
 import ViewToggle from '@/features/records/ViewToggle'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
+import { Checkbox } from '@/components/animate-ui/components/headless/checkbox'
 import { toast } from '@/lib/toast'
 import { IS_BETA } from '@/lib/beta/env'
 import Tip from '@/components/dashboard-ui/Tip'
@@ -400,11 +401,11 @@ export default function RecordsSection(props: Props) {
                   <TableRow><TableCell colSpan={9}><AppEmpty title={records.length ? t('rc.emptyFilter') : t('rc.emptyNone')} description={records.length ? t('rc.emptyFilterD') : undefined} /></TableCell></TableRow>
                 )}
                 {shown.map((r) => (
-                  <TableRow key={r.uniqid} data-ctx-record={r.uniqid} data-ctx-url={r.url} data-ctx-detail={r.detail_id} data-ctx-bulk="" data-ctx-sel={sel.has(r.uniqid) ? sel.size : undefined} className={`cursor-pointer ${sel.has(r.uniqid) ? 'bg-d-light' : ''}`} onClick={() => onTweet(r.uniqid)}
-                    onMouseEnter={IS_BETA ? (e) => { const x = e.clientX, y = e.clientY; clearTimeout(prevTimer.current); prevTimer.current = setTimeout(() => setPrev({ r, x, y }), 500) } : undefined}
-                    onMouseLeave={IS_BETA ? () => { clearTimeout(prevTimer.current); setPrev(null) } : undefined}>
-                    {IS_BETA && <TableCell className="w-8 px-2" onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.has(r.uniqid)} onChange={() => toggleSel(r.uniqid)} aria-label="選択" /></TableCell>}
-                    <TableCell className="px-2 py-3 "><Thumb r={r} onImage={onImage} size="cell" /></TableCell>
+                  <TableRow key={r.uniqid} data-ctx-record={r.uniqid} data-ctx-url={r.url} data-ctx-detail={r.detail_id} data-ctx-bulk="" data-ctx-sel={sel.has(r.uniqid) ? sel.size : undefined} className={`cursor-pointer ${sel.has(r.uniqid) ? 'bg-d-light' : ''}`} onClick={() => onTweet(r.uniqid)}>
+                    {IS_BETA && <TableCell className="w-8 px-2" onClick={(e) => e.stopPropagation()}><Checkbox size="sm" checked={sel.has(r.uniqid)} onChange={() => toggleSel(r.uniqid)} aria-label="選択" /></TableCell>}
+                    <TableCell className="px-2 py-3 "
+                      onMouseEnter={IS_BETA && r.image_url ? (e) => { const x = e.clientX, y = e.clientY; clearTimeout(prevTimer.current); prevTimer.current = setTimeout(() => setPrev({ r, x, y }), 300) } : undefined}
+                      onMouseLeave={IS_BETA ? () => { clearTimeout(prevTimer.current); setPrev(null) } : undefined}><Thumb r={r} onImage={onImage} size="cell" /></TableCell>
                     <TableCell className="px-2 py-3 ">
                       {shortDate(r.date)}{r.metrics_error && <ErrBadge />}
                     </TableCell>
