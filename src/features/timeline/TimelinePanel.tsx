@@ -32,7 +32,7 @@ export function TimelinePanel({ item, onClose }: { item: Item | null; onClose: (
                 <Dialog.Close aria-label={t('rc.close')} className="grid size-9 place-items-center rounded-full text-d-text2 hover:bg-d-med"><X className="size-4" /></Dialog.Close>
               </header>
               <div className="flex-1 overflow-y-auto px-5 py-5">
-                <Link to={`/u/${it.screen_name || it.public_uuid}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80">
+                <Link to={`/${it.public_uuid}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80">
                   <img src={it.avatar_url} alt="" className="size-10 rounded-full" />
                   <span className="min-w-0"><span className="block truncate font-semibold">{it.name}</span>{it.screen_name && <span className="block text-xs text-d-text3">@{it.screen_name}</span>}</span>
                 </Link>
@@ -52,7 +52,7 @@ export function TimelinePanel({ item, onClose }: { item: Item | null; onClose: (
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   {r && <Link to={`/details/${r.detail_id}`} className={btn}><FileText className="size-4" />詳細ページ</Link>}
                   {it.url && <a href={it.url} target="_blank" rel="noopener noreferrer" className={btn}><ExternalLink className="size-4" />Xのポスト</a>}
-                  <Link to={`/u/${it.screen_name || it.public_uuid}`} className={btn}><UserRound className="size-4" />ユーザーページ</Link>
+                  <Link to={`/${it.public_uuid}`} className={btn}><UserRound className="size-4" />ユーザーページ</Link>
                   {sid && <a href={`https://x.ohax.pw/${sid}`} target="_blank" rel="noopener noreferrer" className={btn}><Link2 className="size-4" />短縮URL</a>}
                 </div>
               </div>

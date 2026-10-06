@@ -46,7 +46,7 @@ export default function TimelinePage() {
               <div className="rounded-xl border border-d-border bg-d-bg px-4 py-3">
                 <div className="flex items-center gap-2 text-sm">
                   <img src={it.avatar_url} alt="" className="size-6 rounded-full" loading="lazy" />
-                  <Link to={`/u/${it.screen_name || it.public_uuid}`} className="truncate font-semibold text-d-text hover:underline" data-user-card={it.public_uuid}>{it.name}</Link>
+                  <Link to={`/${it.public_uuid}`} className="truncate font-semibold text-d-text hover:underline" data-user-card={it.public_uuid}>{it.name}</Link>
                   <span className="shrink-0 text-d-text2">{add ? 'がおはツイを追加' : it.count && it.count > 1 ? `がおはツイを${it.count}件削除` : 'がおはツイを削除'}</span>
                   <time className="ml-auto shrink-0 text-xs text-d-text3 tabular-nums" title={full(it.at)}>{full(it.at)}</time>
                 </div>
