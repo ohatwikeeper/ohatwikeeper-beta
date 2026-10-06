@@ -15,6 +15,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { dbtn } from '@/components/dashboard-ui/DButton'
 import ViewToggle from '@/features/records/ViewToggle'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
+import { toast } from '@/lib/toast'
+import { IS_BETA } from '@/lib/beta/env'
 import Tip from '@/components/dashboard-ui/Tip'
 
 /** 一度に描画する件数。スクロールでこの単位ずつ増やし、全件同時描画による重さを防ぐ */
@@ -185,6 +187,26 @@ export default function RecordsSection(props: Props) {
   }, [canDelete])
   const { records, lastUpdateTime, scheduledUpdateTime, onImage, onTweet, onDelete } = props
   const [view, setView] = useState(readView)
+  // beta 限定: 複数選択・一括操作・ホバープレビュー
+  const [sel, setSel] = useState<Set<string>>(new Set())
+  const [bulkDel, setBulkDel] = useState(false)
+  const [prev, setPrev] = useState<{ r: RecordItem; x: number; y: number } | null>(null)
+  const prevTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const toggleSel = (id: string) => setSel((v) => { const n = new Set(v); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const picked = records.filter((r) => sel.has(r.uniqid))
+  const csvOf = (list: RecordItem[]) => ['date,url,likes,reposts,replies,views,text', ...list.map((r) => [r.date, r.url, r.likes, r.reposts, r.replies, r.views, `"${r.text.replace(/"/g, '""').replace(/\n/g, ' ')}"`].join(','))].join('\n')
+  useEffect(() => {
+    if (!IS_BETA) return
+    const h = (e: Event) => {
+      const d = (e as CustomEvent<{ action: string; id: string }>).detail
+      if (d.action === 'toggle') toggleSel(d.id)
+      else if (d.action === 'bulk-csv') { navigator.clipboard.writeText(csvOf(picked)); toast.success(`${picked.length}件をCSVでコピーしました`) }
+      else if (d.action === 'bulk-url') { navigator.clipboard.writeText(picked.map((r) => r.url).join('\n')); toast.success(`${picked.length}件のURLをコピーしました`) }
+      else if (d.action === 'bulk-delete' && picked.length) setBulkDel(true)
+    }
+    document.addEventListener('ctx-record', h)
+    return () => document.removeEventListener('ctx-record', h)
+  })
   const [sort, setSort] = useState<{ key: SortKey; order: 'asc' | 'desc' }>({ key: 'date', order: 'desc' })
   const [range, setRange] = useState<[Date, Date] | null>(null)
   const [flags, setFlags] = useState<Record<Flag, Tri>>({ image: 'any', video: 'any', error: 'any' })
@@ -264,6 +286,22 @@ export default function RecordsSection(props: Props) {
   return (
     <>
       <ConfirmDialog open={delId !== null} onOpenChange={(o) => !o && setDelId(null)} title={t('rc.delete')} onConfirm={() => { if (delId) props.onDelete?.(delId) }} />
+      {IS_BETA && <ConfirmDialog open={bulkDel} onOpenChange={setBulkDel} title={`選択した${picked.length}件を削除`} onConfirm={() => { picked.forEach((r) => props.onDelete?.(r.uniqid)); setSel(new Set()) }} />}
+      {IS_BETA && sel.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-d-border bg-d-bg px-5 py-2 text-sm shadow-lg">
+          <span>{sel.size}件選択</span>
+          <button className="text-d-text2 hover:text-d-text" onClick={() => document.dispatchEvent(new CustomEvent('ctx-record', { detail: { action: 'bulk-csv', id: '' } }))}>CSVコピー</button>
+          <button className="text-d-text2 hover:text-d-text" onClick={() => document.dispatchEvent(new CustomEvent('ctx-record', { detail: { action: 'bulk-url', id: '' } }))}>URLコピー</button>
+          {canDelete && <button className="text-red-500" onClick={() => setBulkDel(true)}>削除</button>}
+          <button className="text-d-text3" onClick={() => setSel(new Set())}>解除</button>
+        </div>
+      )}
+      {IS_BETA && prev && (
+        <div className="pointer-events-none fixed z-50 w-72 overflow-hidden rounded-xl border border-d-border bg-d-bg shadow-xl" style={{ left: Math.min(prev.x + 16, window.innerWidth - 300), top: Math.min(prev.y + 16, window.innerHeight - 260) }}>
+          {prev.r.image_url && <img src={prev.r.image_url} alt="" className="h-36 w-full object-cover" />}
+          <p className="line-clamp-5 p-3 text-xs leading-5 text-d-text">{prev.r.text}</p>
+        </div>
+      )}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <div className="flex flex-wrap items-center gap-3">
           {!props.hideFilters && (<>
@@ -337,6 +375,7 @@ export default function RecordsSection(props: Props) {
             <Table>
               <TableHeader>
                 <TableRow className="">
+                  {IS_BETA && <TableHead className="w-8 px-2" />}
                   {HEADERS.map((h) => (
                     <TableHead key={h.label} className={`font-mono text-[11px] uppercase tracking-wider text-muted-foreground ${h.cls ?? ''}`}>
                       {h.key ? (
@@ -358,10 +397,13 @@ export default function RecordsSection(props: Props) {
               </TableHeader>
               <TableBody>
                 {rows.length === 0 && (
-                  <TableRow><TableCell colSpan={8}><AppEmpty title={records.length ? t('rc.emptyFilter') : t('rc.emptyNone')} description={records.length ? t('rc.emptyFilterD') : undefined} /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9}><AppEmpty title={records.length ? t('rc.emptyFilter') : t('rc.emptyNone')} description={records.length ? t('rc.emptyFilterD') : undefined} /></TableCell></TableRow>
                 )}
                 {shown.map((r) => (
-                  <TableRow key={r.uniqid} data-ctx-record={r.uniqid} data-ctx-url={r.url} data-ctx-detail={r.detail_id} className="cursor-pointer" onClick={() => onTweet(r.uniqid)}>
+                  <TableRow key={r.uniqid} data-ctx-record={r.uniqid} data-ctx-url={r.url} data-ctx-detail={r.detail_id} data-ctx-bulk="" data-ctx-sel={sel.has(r.uniqid) ? sel.size : undefined} className={`cursor-pointer ${sel.has(r.uniqid) ? 'bg-d-light' : ''}`} onClick={() => onTweet(r.uniqid)}
+                    onMouseEnter={IS_BETA ? (e) => { const x = e.clientX, y = e.clientY; clearTimeout(prevTimer.current); prevTimer.current = setTimeout(() => setPrev({ r, x, y }), 500) } : undefined}
+                    onMouseLeave={IS_BETA ? () => { clearTimeout(prevTimer.current); setPrev(null) } : undefined}>
+                    {IS_BETA && <TableCell className="w-8 px-2" onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.has(r.uniqid)} onChange={() => toggleSel(r.uniqid)} aria-label="選択" /></TableCell>}
                     <TableCell className="px-2 py-3 "><Thumb r={r} onImage={onImage} size="cell" /></TableCell>
                     <TableCell className="px-2 py-3 ">
                       {shortDate(r.date)}{r.metrics_error && <ErrBadge />}

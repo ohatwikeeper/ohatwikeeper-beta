@@ -8,6 +8,7 @@ import { GlimmProvider } from 'glimm/react'
 // import { bindGlobalClickSounds } from '@/lib/cuelume-sound'
 import ActionWidget from '@/widgets/ActionWidget'
 import CommandPalette from '@/widgets/CommandPalette'
+import BetaShortcuts from '@/widgets/BetaShortcuts'
 import SiteContextMenu from '@/widgets/SiteContextMenu'
 import SplashCursor from '@/widgets/SplashCursor'
 import DonationBar from '@/components/dashboard-ui/DonationBar'
@@ -188,6 +189,7 @@ function App() {
         </MaintenanceGate>
         <NotAdmin><ActionWidget /></NotAdmin>
         <CommandPalette />
+        <BetaShortcuts />
         <OnboardGate />
         </SiteContextMenu>
       </GlimmProvider>
