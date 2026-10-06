@@ -37,7 +37,6 @@ import {
   Tag,
   ArrowUpDown,
   X,
-  ChevronRight, TrendingUp } from 'lucide-react'
 
 interface ShortLink {
   id: number
