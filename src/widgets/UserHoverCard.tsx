@@ -59,7 +59,7 @@ export default function UserHoverCard() {
               {c.screen_name && <div className="truncate text-sm text-d-text3">@{c.screen_name}</div>}
             </Link>
             {c.bio_html && <div className="mt-2 line-clamp-4 text-sm leading-5 text-d-text [&_a]:text-d-accent" dangerouslySetInnerHTML={{ __html: c.bio_html }} />}
-            <div className="mt-3 flex gap-3 whitespace-nowrap text-xs text-d-text3">
+            <div className="mt-3 flex justify-between gap-3 whitespace-nowrap text-xs text-d-text3">
               <span><b className="text-d-text">{num(c.following)}</b> フォロー</span>
               <span><b className="text-d-text">{num(c.followers)}</b> フォロワー</span>
               <span><b className="text-d-text">{num(c.records)}</b>おはツイ</span>
