@@ -103,8 +103,6 @@ function App() {
             <Route path="/login" element={<Suspense fallback={<PageLoader />}><LoginPage /></Suspense>} />
             <Route path="/auth/lapount/callback" element={<Suspense fallback={<PageLoader />}><LapountCallbackPage /></Suspense>} />
             <Route path="/confirm_login" element={<Suspense fallback={<PageLoader />}><ConfirmLoginPage /></Suspense>} />
-            <Route path="/beta" element={<Suspense fallback={<PageLoader />}><BetaPage /></Suspense>} />
-            <Route path="/beta/diff" element={<Suspense fallback={<PageLoader />}><BetaPage /></Suspense>} />
           <Route path="/" element={<TopPage />} />
           <Route element={<AppShell />}>
           <Route element={<DashboardPage />}>
@@ -145,6 +143,8 @@ function App() {
           <Route path="/patchnote" element={<Suspense fallback={<PageLoader />}><PatchnotesPage /></Suspense>} />
           <Route path="/patchnote/:version" element={<Suspense fallback={<PageLoader />}><PatchnotesPage /></Suspense>} />
           <Route path="/patchnote.php" element={<Suspense fallback={<PageLoader />}><PatchnotesPage /></Suspense>} />
+          <Route path="/beta" element={<Suspense fallback={<PageLoader />}><BetaPage /></Suspense>} />
+          <Route path="/beta/diff" element={<Suspense fallback={<PageLoader />}><BetaPage /></Suspense>} />
           <Route path="/terms" element={<Suspense fallback={<PageLoader />}><TermsPage /></Suspense>} />
           <Route path="/policy" element={<Suspense fallback={<PageLoader />}><PolicyPage /></Suspense>} />
           <Route path="/policy.php" element={<Suspense fallback={<PageLoader />}><PolicyPage /></Suspense>} />
