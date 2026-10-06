@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { FlaskConical, GitCommitHorizontal } from 'lucide-react'
 import PageHeader from '@/components/dashboard-ui/PageHeader'
 
-interface BetaInfo { generatedAt?: string; base: string; notes: string; commits: { hash: string; date: string; msg: string }[] }
+interface BetaInfo { generatedAt?: string; base: string; notes: string; commits: { hash: string; date: string; msg: string }[]; files?: { path: string; add: number; del: number; patch: string }[] }
 
 function useBetaInfo() {
   const [info, setInfo] = useState<BetaInfo | null>(null)
@@ -14,6 +14,16 @@ function useBetaInfo() {
     return () => clearInterval(id)
   }, [])
   return info
+}
+
+function Patch({ text }: { text: string }) {
+  return (
+    <pre className="overflow-x-auto bg-d-light px-4 py-2 text-xs leading-5">
+      {text.split('\n').filter((l) => !/^(diff --git|index |--- |\+\+\+ )/.test(l)).map((l, i) => (
+        <div key={i} className={l.startsWith('+') ? 'bg-green-500/15 text-d-text' : l.startsWith('-') ? 'bg-red-500/15 text-d-text' : l.startsWith('@@') ? 'text-d-text3' : 'text-d-text2'}>{l || ' '}</div>
+      ))}
+    </pre>
+  )
 }
 
 const day = (s: string) => s.slice(0, 10)
@@ -47,6 +57,22 @@ export default function BetaPage() {
             ))}
           </ul>
         : <p className="text-sm text-d-text3">本番との差分はありません。</p>)}
+      {info && diff && !!info.files?.length && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-base font-bold text-d-text">コードの差分 ({info.files.length} ファイル)</h2>
+          <div className="flex flex-col gap-2">
+            {info.files.map((f) => (
+              <details key={f.path} className="overflow-hidden rounded-lg border border-d-border">
+                <summary className="flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm">
+                  <span className="grow break-all text-d-text">{f.path}</span>
+                  <span className="text-xs text-green-600">+{f.add}</span><span className="text-xs text-red-500">-{f.del}</span>
+                </summary>
+                <Patch text={f.patch} />
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
