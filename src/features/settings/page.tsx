@@ -4,6 +4,7 @@ import { Switch } from '@/components/ui/switch'
 import { confirmDialog } from '@/lib/confirm'
 import { Checkbox } from '@/components/ui/checkbox'
 import MonthDayPicker from '@/components/dashboard-ui/MonthDayPicker'
+import SecuritySection from './SecuritySection'
 import ExportMenu from '@/components/dashboard-ui/ExportMenu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -449,6 +450,8 @@ function AccountTab({
           </Button>
         </div>
       </div>
+      <SecuritySection />
+
       {/* Export */}
       <div className="pt-4">
         <h2 className="text-lg font-bold text-d-text">{t('st.export')}</h2>
