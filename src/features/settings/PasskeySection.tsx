@@ -8,6 +8,10 @@ import { confirmDialog } from '@/lib/confirm'
 import { toast } from '@/lib/toast'
 import { apiGet, apiSend, friendlyError } from '@/lib/dashboard/api'
 
+const KEY = 'ohk_passkey_ids'
+export const savedPasskeyIds = (): string[] => { try { return JSON.parse(localStorage.getItem(KEY) ?? '[]') } catch { return [] } }
+const rememberPasskey = (id: string) => { try { localStorage.setItem(KEY, JSON.stringify([...new Set([id, ...savedPasskeyIds()])].slice(0, 10))) } catch { /* 保存不可は無視 */ } }
+
 type Pk = { id: number; name: string; created_at: number; last_used_at: number | null }
 
 export default function PasskeySection() {
@@ -28,7 +32,8 @@ export default function PasskeySection() {
     try {
       const { options } = await apiSend<{ options: any }>('passkeys/register/options', 'POST')
       const response = await startRegistration({ optionsJSON: options })
-      await apiSend('passkeys/register/verify', 'POST', { response, name })
+      const done = await apiSend<{ credential_id?: string }>('passkeys/register/verify', 'POST', { response, name })
+      rememberPasskey(done.credential_id ?? response.id)
       setName('')
       toast.success(t('pk.added'))
       await load()

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { AlertCircle, ArrowLeft, KeyRound, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { savedPasskeyIds } from '@/features/settings/PasskeySection'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 
 interface AuthState { csrf: string; logged_in: boolean; error: string | null }
@@ -26,7 +27,7 @@ export default function LoginPage() {
     setBusy('passkey')
     try {
       const post = (path: string, body?: unknown) => fetch(path, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }).then(async (x) => { const j = await x.json().catch(() => ({})); if (!x.ok) throw new Error(j.error ?? t('lg.loadFail')); return j })
-      const optionsJSON = await post('/app-api/auth/passkey/options')
+      const optionsJSON = await post('/app-api/auth/passkey/options', { ids: savedPasskeyIds() })
       const response = await startAuthentication({ optionsJSON })
       const d = await post('/app-api/auth/passkey/verify', { response, r })
       window.location.href = d.redirect
