@@ -7,7 +7,7 @@ import { toast } from '@/lib/toast'
 import { apiGet, apiSend, friendlyError } from '@/lib/dashboard/api'
 
 type Sess = { id: string; current: boolean; ip: string | null; ua: string | null; login_at: number | null }
-type Hist = { id: number; ip: string; user_agent: string; is_new_device: number; created_at: string }
+type Hist = { id: number; ip: string; user_agent: string; is_new_device: number; created_at: number | string }
 
 // UA 文字列から「ブラウザ / OS」の簡易表記を作る
 const label = (ua: string | null, unknown: string) => {
@@ -16,7 +16,7 @@ const label = (ua: string | null, unknown: string) => {
   const o = /Windows/.test(ua) ? 'Windows' : /Android/.test(ua) ? 'Android' : /iPhone|iPad|iOS/.test(ua) ? 'iOS' : /Mac OS X/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : unknown
   return `${b} / ${o}`
 }
-const fmt = (v: number | string) => new Date(typeof v === 'string' ? v.replace(' ', 'T') + (v.endsWith('Z') ? '' : 'Z') : v).toLocaleString()
+const fmt = (ms: number | string) => new Date(Number(ms)).toLocaleString()
 
 export default function SecuritySection() {
   const { t } = useTranslation()
