@@ -3,8 +3,9 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { AlertCircle, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { AlertCircle, ArrowLeft, KeyRound, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 
 interface AuthState { csrf: string; logged_in: boolean; error: string | null }
 
@@ -20,6 +21,20 @@ export default function LoginPage() {
   const [st, setSt] = useState<AuthState | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const r = new URLSearchParams(window.location.search).get('r') ?? ''
+
+  const passkeyLogin = async () => {
+    setBusy('passkey')
+    try {
+      const post = (path: string, body?: unknown) => fetch(path, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }).then(async (x) => { const j = await x.json().catch(() => ({})); if (!x.ok) throw new Error(j.error ?? t('lg.loadFail')); return j })
+      const optionsJSON = await post('/app-api/auth/passkey/options')
+      const response = await startAuthentication({ optionsJSON })
+      const d = await post('/app-api/auth/passkey/verify', { response, r })
+      window.location.href = d.redirect
+    } catch (e) {
+      setSt((p) => ({ csrf: p?.csrf ?? '', logged_in: false, error: (e as Error)?.name === 'NotAllowedError' ? t('pk.cancelled') : (e as Error).message }))
+      setBusy(null)
+    }
+  }
 
   useEffect(() => {
     document.title = `${t('lg.title')} - おはツイKeeper`
@@ -98,6 +113,11 @@ export default function LoginPage() {
                 </Button>
               </form>
             ))}
+            {browserSupportsWebAuthn() && (
+              <Button type="button" disabled={busy !== null} onClick={passkeyLogin} className="h-14 w-full gap-3 rounded-full border border-d-border bg-d-bg text-base font-semibold text-d-text hover:bg-d-border/40">
+                <KeyRound className="size-5" />{t('lg.passkey')}
+              </Button>
+            )}
             <Button type="button" disabled={busy !== null} onClick={() => { setBusy('lapount'); window.location.href = '/auth/lapount/start' + (r ? `?r=${encodeURIComponent(r)}` : '') }} className="h-14 w-full gap-3 rounded-full border border-d-border bg-d-bg text-[15px] font-bold text-d-text transition-transform hover:bg-d-border/40 active:scale-[0.97]">
               <span className="text-lg font-black text-d-accent">L</span>Lapount でログイン
             </Button>

@@ -5,6 +5,7 @@ import { confirmDialog } from '@/lib/confirm'
 import { Checkbox } from '@/components/ui/checkbox'
 import MonthDayPicker from '@/components/dashboard-ui/MonthDayPicker'
 import SecuritySection from './SecuritySection'
+import PasskeySection from './PasskeySection'
 import ExportMenu from '@/components/dashboard-ui/ExportMenu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -235,7 +236,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'theme' && <ThemePanel />}
-          {activeTab === 'security' && <SecuritySection />}
+          {activeTab === 'security' && (<><PasskeySection /><SecuritySection /></>)}
           {activeTab === 'widgets' && (
             <WidgetsTab data={data} runAction={runAction} />
           )}
