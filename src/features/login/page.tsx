@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { AlertCircle, ArrowLeft, KeyRound, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { savedPasskeyIds } from '@/features/settings/PasskeySection'
+import { Input } from '@/components/ui/input'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 
 interface AuthState { csrf: string; logged_in: boolean; error: string | null }
@@ -21,13 +21,15 @@ export default function LoginPage() {
   const { t } = useTranslation()
   const [st, setSt] = useState<AuthState | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [pkOpen, setPkOpen] = useState(false)
+  const [pkId, setPkId] = useState('')
   const r = new URLSearchParams(window.location.search).get('r') ?? ''
 
-  const passkeyLogin = async () => {
+  const passkeyLogin = async (identifier: string) => {
     setBusy('passkey')
     try {
       const post = (path: string, body?: unknown) => fetch(path, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }).then(async (x) => { const j = await x.json().catch(() => ({})); if (!x.ok) throw new Error(j.error ?? t('lg.loadFail')); return j })
-      const optionsJSON = await post('/app-api/auth/passkey/options', { ids: savedPasskeyIds() })
+      const optionsJSON = await post('/app-api/auth/passkey/options', { identifier })
       const response = await startAuthentication({ optionsJSON })
       const d = await post('/app-api/auth/passkey/verify', { response, r })
       window.location.href = d.redirect
@@ -114,11 +116,16 @@ export default function LoginPage() {
                 </Button>
               </form>
             ))}
-            {browserSupportsWebAuthn() && (
-              <Button type="button" disabled={busy !== null} onClick={passkeyLogin} className="h-14 w-full gap-3 rounded-full border border-d-border bg-d-bg text-base font-semibold text-d-text hover:bg-d-border/40">
+            {browserSupportsWebAuthn() && (pkOpen ? (
+              <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); void passkeyLogin(pkId) }}>
+                <Input value={pkId} onChange={(e) => setPkId(e.target.value)} placeholder={t('pk.identifier')} autoComplete="username webauthn" autoFocus className="h-14 rounded-full px-6" />
+                <Button type="submit" disabled={busy !== null} className="h-14 shrink-0 rounded-full px-6">{t('pk.next')}</Button>
+              </form>
+            ) : (
+              <Button type="button" disabled={busy !== null} onClick={() => setPkOpen(true)} className="h-14 w-full gap-3 rounded-full border border-d-border bg-d-bg text-base font-semibold text-d-text hover:bg-d-border/40">
                 <KeyRound className="size-5" />{t('lg.passkey')}
               </Button>
-            )}
+            ))}
             <Button type="button" disabled={busy !== null} onClick={() => { setBusy('lapount'); window.location.href = '/auth/lapount/start' + (r ? `?r=${encodeURIComponent(r)}` : '') }} className="h-14 w-full gap-3 rounded-full border border-d-border bg-d-bg text-[15px] font-bold text-d-text transition-transform hover:bg-d-border/40 active:scale-[0.97]">
               <span className="text-lg font-black text-d-accent">L</span>Lapount でログイン
             </Button>
