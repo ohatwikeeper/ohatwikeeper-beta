@@ -19,6 +19,7 @@ import { toast } from '@/lib/toast'
 import {
   Settings as SettingsIcon,
   Globe,
+  ShieldCheck,
   Mail,
   Key,
   Bell,
@@ -107,9 +108,9 @@ async function apiCall<T = any>(path: string, method = 'POST', body?: unknown): 
   return j
 }
 
-type TabType = 'account' | 'notify' | 'api' | 'webhooks' | 'widgets' | 'theme'
-const TAB_PATH: Record<TabType, string> = { account: '/settings', notify: '/settings/notify', api: '/settings/apikey', webhooks: '/settings/webhooks', widgets: '/settings/widgets', theme: '/settings/theme' }
-const TAB_BY_SEG: Record<string, TabType> = { notify: 'notify', apikey: 'api', api: 'api', webhooks: 'webhooks', webhook: 'webhooks', widgets: 'widgets', theme: 'theme', email: 'account' }
+type TabType = 'account' | 'notify' | 'api' | 'webhooks' | 'widgets' | 'theme' | 'security'
+const TAB_PATH: Record<TabType, string> = { account: '/settings', notify: '/settings/notify', api: '/settings/apikey', webhooks: '/settings/webhooks', widgets: '/settings/widgets', theme: '/settings/theme', security: '/settings/security' }
+const TAB_BY_SEG: Record<string, TabType> = { notify: 'notify', apikey: 'api', api: 'api', webhooks: 'webhooks', webhook: 'webhooks', widgets: 'widgets', theme: 'theme', email: 'account', security: 'security', sessions: 'security' }
 
 export default function SettingsPage() {
   const { t } = useTranslation()
@@ -205,6 +206,7 @@ export default function SettingsPage() {
               { id: 'webhooks', label: `Webhook (${data.webhooks.length}/5)`, icon: WebhookIcon },
               { id: 'widgets', label: t('st.tabWidgets', { n: data.widgets.length }), icon: LayoutGrid },
               { id: 'theme', label: t('tab.theme'), icon: Palette },
+              { id: 'security', label: t('sec.tab'), icon: ShieldCheck },
             ].map(({ id, label, icon: Icon }) => (
               <TabsTrigger key={id} value={id}>
                 <Icon className="mr-1.5 inline h-4 w-4" />
@@ -233,6 +235,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'theme' && <ThemePanel />}
+          {activeTab === 'security' && <SecuritySection />}
           {activeTab === 'widgets' && (
             <WidgetsTab data={data} runAction={runAction} />
           )}
@@ -450,8 +453,6 @@ function AccountTab({
           </Button>
         </div>
       </div>
-      <SecuritySection />
-
       {/* Export */}
       <div className="pt-4">
         <h2 className="text-lg font-bold text-d-text">{t('st.export')}</h2>
