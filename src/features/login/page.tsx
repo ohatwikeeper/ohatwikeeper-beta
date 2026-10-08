@@ -97,8 +97,8 @@ export default function LoginPage() {
                   <motion.span key={i} className="size-1.5 rounded-full bg-d-text2" animate={{ opacity: [0.25, 1, 0.25] }} transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }} />
                 ))}
               </span>
-              <span className="flex size-6 items-center justify-center text-d-text">{busy === 'x' ? <XIcon /> : busy === 'lapount' ? <span className="text-lg font-black text-d-accent">L</span> : <span className="text-[#5865f2]"><DiscordIcon /></span>}</span>
-              <span>{t('lg.busy', { p: busy === 'x' ? 'X' : busy === 'lapount' ? 'Lapount' : 'Discord' })}</span>
+              <span className="flex size-6 items-center justify-center text-d-text">{busy === 'x' ? <XIcon /> : busy === 'lapount' ? <span className="text-lg font-black text-d-accent">L</span> : busy === 'passkey' ? <KeyRound className="size-5" /> : <span className="text-[#5865f2]"><DiscordIcon /></span>}</span>
+              <span>{t('lg.busy', { p: busy === 'x' ? 'X' : busy === 'lapount' ? 'Lapount' : busy === 'passkey' ? t('pk.title') : 'Discord' })}</span>
             </motion.div>
           )}
           <div className={`flex flex-col gap-3 transition-opacity ${busy ? 'pointer-events-none opacity-0' : ''}`}>
