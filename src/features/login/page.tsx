@@ -2,7 +2,7 @@ import LanguageSwitcher from '@/components/dashboard-ui/LanguageSwitcher'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { AlertCircle, ArrowLeft, KeyRound, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -116,16 +116,35 @@ export default function LoginPage() {
                 </Button>
               </form>
             ))}
-            {browserSupportsWebAuthn() && (pkOpen ? (
-              <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); void passkeyLogin(pkId) }}>
-                <Input value={pkId} onChange={(e) => setPkId(e.target.value)} placeholder={t('pk.identifier')} autoComplete="username webauthn" autoFocus className="h-14 rounded-full px-6" />
-                <Button type="submit" disabled={busy !== null} className="h-14 shrink-0 rounded-full px-6">{t('pk.next')}</Button>
-              </form>
-            ) : (
-              <Button type="button" disabled={busy !== null} onClick={() => setPkOpen(true)} className="h-14 w-full gap-3 rounded-full border border-d-border bg-d-bg text-base font-semibold text-d-text hover:bg-d-border/40">
-                <KeyRound className="size-5" />{t('lg.passkey')}
-              </Button>
-            ))}
+            {browserSupportsWebAuthn() && (
+              <div>
+                <Button type="button" disabled={busy !== null} aria-expanded={pkOpen} onClick={() => setPkOpen((o) => !o)} className="h-14 w-full gap-3 rounded-full border border-d-border bg-d-bg text-base font-semibold text-d-text hover:bg-d-border/40">
+                  <KeyRound className="size-5" />{t('lg.passkey')}
+                </Button>
+                <AnimatePresence initial={false}>
+                  {pkOpen && (
+                    <motion.form
+                      key="pk-form"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                      onSubmit={(e) => { e.preventDefault(); void passkeyLogin(pkId) }}
+                    >
+                      <div className="space-y-3 pt-3">
+                        <Input value={pkId} onChange={(e) => setPkId(e.target.value)} placeholder={t('pk.identifier')} aria-label={t('pk.identifier')} autoComplete="username webauthn" autoFocus className="h-12 rounded-full px-5" />
+                        <p className="px-2 text-xs text-d-text3">{t('pk.hint')}</p>
+                        <div className="flex gap-2">
+                          <Button type="button" variant="outline" disabled={busy !== null} onClick={() => { setPkOpen(false); setPkId('') }} className="h-12 flex-1 rounded-full border-d-border">{t('pk.cancel')}</Button>
+                          <Button type="submit" disabled={busy !== null} className="h-12 flex-1 rounded-full">{t('pk.next')}</Button>
+                        </div>
+                      </div>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
             <Button type="button" disabled={busy !== null} onClick={() => { setBusy('lapount'); window.location.href = '/auth/lapount/start' + (r ? `?r=${encodeURIComponent(r)}` : '') }} className="h-14 w-full gap-3 rounded-full border border-d-border bg-d-bg text-[15px] font-bold text-d-text transition-transform hover:bg-d-border/40 active:scale-[0.97]">
               <span className="text-lg font-black text-d-accent">L</span>Lapount でログイン
             </Button>
