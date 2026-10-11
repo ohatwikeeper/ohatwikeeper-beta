@@ -63,7 +63,24 @@ export default function DashboardPage() {
   const [zipOpen, setZipOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(true)
   const [surveyOpen, setSurveyOpen] = useState(true)
-  const [progress, setProgress] = useState<Progress>(null)
+  // 更新の進捗は localStorage に残し、リロードしても×を押すまで表示し続ける
+  const PG_KEY = 'dash-update-progress'
+  const [progress, setProgress] = useState<Progress>(() => {
+    try {
+      const o = JSON.parse(localStorage.getItem(PG_KEY) ?? 'null')
+      if (!o) return null
+      const clear = () => { localStorage.removeItem(PG_KEY); setProgress(null) }
+      if (o.summary) return { ...o, summary: { ...o.summary, onClose: clear } }
+      return { ...o, text: i18n.t('dp.interrupted'), onDismiss: clear }
+    } catch { return null }
+  })
+  useEffect(() => {
+    if (progress && progress.total) {
+      const { onDismiss: _d, ...rest } = progress as any
+      if (rest.summary) rest.summary = { ...rest.summary, onClose: undefined }
+      localStorage.setItem(PG_KEY, JSON.stringify(rest))
+    } else if (!progress) localStorage.removeItem(PG_KEY)
+  }, [progress])
 
   useEffect(() => { if (isHome) document.title = i18n.t('dp.doc') }, [isHome])
   // セットアップ(必須設定・初回オンボード)が終わるまで自動ツアーは出さない
