@@ -9,7 +9,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
     group: 'ユーザー', items: [
       { to: D('users'), label: 'ユーザー一覧', icon: Users, keywords: 'users ユーザー' },
       { to: D('emails'), label: '登録メールアドレス', icon: Mail, keywords: 'email メール' },
-      { to: '/admin-new/beta', label: 'ベータ招待', icon: ShieldCheck, legacy: '/admin/beta', keywords: 'beta' },
+      { to: '/admin-new/beta', label: 'ベータ招待', icon: ShieldCheck, keywords: 'beta' },
     ],
   },
   {
@@ -28,15 +28,15 @@ export const NAV: { group: string; items: NavItem[] }[] = [
       { to: D('feedbacks'), label: 'フィードバック', icon: MessageSquare, keywords: 'feedback' },
       { to: D('short-links'), label: '短縮URL', icon: Link2, keywords: 'short link' },
       { to: D('notifications'), label: 'お知らせ', icon: Bell, keywords: 'notification' },
-      { to: '/admin-new/patchnotes', label: 'パッチノート', icon: Newspaper, legacy: '/admin/patchnotes', keywords: 'patchnote' },
+      { to: '/admin-new/patchnotes', label: 'パッチノート', icon: Newspaper, keywords: 'patchnote' },
     ],
   },
   {
     group: 'システム', items: [
-      { to: '/admin-new/timing', label: 'データ更新タイミング', icon: Clock, legacy: '/admin/timing' },
-      { to: '/admin-new/image-cache', label: '画像キャッシュ', icon: ImageIcon, legacy: '/admin/image-cache' },
+      { to: '/admin-new/timing', label: 'データ更新タイミング', icon: Clock },
+      { to: '/admin-new/image-cache', label: '画像キャッシュ', icon: ImageIcon },
       { to: D('system-settings'), label: 'システム設定', icon: Cog, keywords: 'settings' },
-      { to: '/admin-new/maintenance', label: 'メンテナンス', icon: Wrench, legacy: '/admin/maintenance', keywords: 'maintenance' },
+      { to: '/admin-new/maintenance', label: 'メンテナンス', icon: Wrench, keywords: 'maintenance' },
     ],
   },
 ]
