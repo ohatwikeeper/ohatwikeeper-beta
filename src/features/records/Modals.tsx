@@ -10,10 +10,8 @@ import { DButton } from '@/components/dashboard-ui/DButton'
 import { Spinner } from '@/components/ui/spinner'
 import { DatePicker } from '@/components/arc/date-picker/date-picker'
 import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { CircleAlertIcon, CircleCheckIcon, TriangleAlertIcon } from 'lucide-react'
+import { CircleCheckIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
 
 const toDate = (v: string) => (v ? new Date(`${v}T00:00:00`) : undefined)
 const fromDate = (d?: Date) => (d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : '')
@@ -220,17 +218,17 @@ export type ProgressState = {
   summary?: { counts: UpdateCounts; total: number; elapsedMs: number; scraperError: boolean; onClose: () => void }
 }
 
-function CountCell({ label, value, tone }: { label: string; value: number; tone?: 'ok' | 'bad' }) {
+function Stat({ label, value, tone }: { label: string; value: number; tone?: 'ok' | 'bad' }) {
+  const color = tone === 'bad' && value > 0 ? 'text-red-400' : tone === 'ok' && value > 0 ? 'text-emerald-400' : 'text-d-text'
   return (
-    <div className="flex flex-col gap-1 rounded-lg bg-muted/50 px-3 py-2.5 ring-1 ring-foreground/10">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={`text-2xl font-semibold tabular-nums ${tone === 'bad' && value > 0 ? 'text-destructive' : tone === 'ok' && value > 0 ? 'text-emerald-500' : 'text-foreground'}`}>
-        {value.toLocaleString()}
-      </span>
+    <div className="flex flex-1 flex-col gap-0.5">
+      <span className="text-xs text-d-text2">{label}</span>
+      <span className={`text-xl font-semibold tabular-nums ${color}`}>{value.toLocaleString()}</span>
     </div>
   )
 }
 
+/** 画面をふさがない右下の進捗パネル(更新中は操作を妨げず、完了後は×で閉じる) */
 export function ProgressOverlay({ state }: { state: ProgressState | null }) {
   const { t } = useTranslation()
   if (!state) return null
@@ -239,53 +237,41 @@ export function ProgressOverlay({ state }: { state: ProgressState | null }) {
   const counts = sm?.counts ?? state.counts
   const hasIssue = !!sm && (sm.counts.failed > 0 || sm.scraperError)
   return (
-    <div className="dash-vars fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-live="polite">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            {sm ? (hasIssue ? <TriangleAlertIcon className="size-5 text-amber-500" /> : <CircleCheckIcon className="size-5 text-emerald-500" />) : <Spinner />}
-            {sm ? t('rc.pgDone') : state.text}
-          </CardTitle>
+    <div
+      className="dash-vars fixed right-4 bottom-4 z-[1200] flex w-[min(380px,calc(100vw-2rem))] flex-col gap-4 rounded-2xl border border-d-border bg-d-med p-4 shadow-2xl"
+      role="status" aria-live="polite"
+    >
+      <div className="flex items-start gap-2.5">
+        <span className="mt-0.5 shrink-0">
+          {sm ? (hasIssue ? <TriangleAlertIcon className="size-4 text-amber-400" /> : <CircleCheckIcon className="size-4 text-emerald-400" />) : <Spinner />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-d-text">{sm ? t('rc.pgDone') : state.text}</p>
           {sm ? (
-            <CardDescription>
-              {t('rc.pgTotal')}: {sm.total.toLocaleString()} · {t('rc.pgElapsed')}: {(sm.elapsedMs / 1000).toFixed(1)}s
-            </CardDescription>
+            <p className="text-xs text-d-text2">
+              {t('rc.pgTotal')} {sm.total.toLocaleString()} · {t('rc.pgElapsed')} {(sm.elapsedMs / 1000).toFixed(1)}s
+            </p>
           ) : null}
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {state.total ? (
-            <Progress value={sm ? 100 : pct}>
-              <ProgressLabel>{t('rc.progress')}</ProgressLabel>
-              <ProgressValue />
-            </Progress>
-          ) : null}
-          {counts ? (
-            <div className="grid grid-cols-3 gap-2">
-              <CountCell label={t('rc.pgUpdated')} value={counts.updated} tone="ok" />
-              <CountCell label={t('rc.pgUnchanged')} value={counts.unchanged} />
-              <CountCell label={t('rc.pgFailed')} value={counts.failed} tone="bad" />
-            </div>
-          ) : null}
-          {sm?.counts.failed ? (
-            <Alert>
-              <CircleAlertIcon />
-              <AlertDescription>{t('rc.pgFailHint')}</AlertDescription>
-            </Alert>
-          ) : null}
-          {sm?.scraperError ? (
-            <Alert variant="destructive">
-              <TriangleAlertIcon />
-              <AlertTitle>{t('rc.pgFailed')}</AlertTitle>
-              <AlertDescription>{t('rc.pgScraperErr')}</AlertDescription>
-            </Alert>
-          ) : null}
-        </CardContent>
+        </div>
         {sm ? (
-          <CardFooter className="justify-end">
-            <Button onClick={sm.onClose}>{t('rc.pgClose')}</Button>
-          </CardFooter>
+          <Button variant="ghost" size="icon-sm" aria-label={t('rc.pgClose')} onClick={sm.onClose}><XIcon /></Button>
         ) : null}
-      </Card>
+      </div>
+      {state.total ? (
+        <Progress value={sm ? 100 : pct}>
+          <ProgressLabel className="text-xs font-normal text-d-text2">{t('rc.progress')}</ProgressLabel>
+          <ProgressValue className="text-xs text-d-text2" />
+        </Progress>
+      ) : null}
+      {counts ? (
+        <div className="flex gap-3 divide-x divide-d-border [&>*:not(:first-child)]:pl-3">
+          <Stat label={t('rc.pgUpdated')} value={counts.updated} tone="ok" />
+          <Stat label={t('rc.pgUnchanged')} value={counts.unchanged} />
+          <Stat label={t('rc.pgFailed')} value={counts.failed} tone="bad" />
+        </div>
+      ) : null}
+      {sm?.counts.failed ? <p className="text-xs leading-relaxed text-d-text2">{t('rc.pgFailHint')}</p> : null}
+      {sm?.scraperError ? <p className="text-xs leading-relaxed text-red-400">{t('rc.pgScraperErr')}</p> : null}
     </div>
   )
 }
