@@ -140,12 +140,12 @@ export default function DashboardPage() {
   }
 
   /** 過去1ヶ月/全件の記録を50件×3並列で更新する(dashboard.php の handleBatchUpdateProcess 相当) */
-  const runUpdate = async (period: 'month' | 'all') => {
+  const runUpdate = async (period: 'month' | 'all' | 'range', range?: { from: string; to: string }) => {
     try {
       setProgress({ text: i18n.t('dp.preparing') })
       // プロフィール更新は待たずに並行実行(進捗表示を遅らせない)
       const profileUpdate = apiSend('update_profile', 'POST').catch(() => {})
-      const { ids } = await apiGet<{ ids: number[] }>(`record_ids?period=${period}`)
+      const { ids } = await apiGet<{ ids: number[] }>(`record_ids?period=${period}${range ? `&from=${range.from}&to=${range.to}` : ''}`)
       if (ids.length === 0) {
         await profileUpdate
         setProgress({ text: i18n.t('dp.nothing') })
