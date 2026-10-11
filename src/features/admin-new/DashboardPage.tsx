@@ -15,8 +15,8 @@ type Trend = { days: string[]; signups: number[]; access: number[]; api: number[
 type ListRes = { rows: Record<string, unknown>[]; total: number }
 
 const SPARKS: [keyof Omit<Trend, 'days'>, string, 'accent' | 'success' | 'warning' | 'danger', string][] = [
-  ['access', 'アクセス', 'accent', '/admin-new/data/access'], ['api', 'API呼び出し', 'success', '/admin-new/data/api-logs'],
-  ['signups', '新規登録', 'accent', '/admin-new/data/users'], ['errors', '画面エラー', 'danger', '/admin-new/data/page-errors'],
+  ['access', 'アクセス', 'accent', '/admin-new/analytics?metric=access'], ['api', 'API呼び出し', 'success', '/admin-new/analytics?metric=api'],
+  ['signups', '新規登録', 'accent', '/admin-new/analytics?metric=signups'], ['errors', '画面エラー', 'danger', '/admin-new/analytics?metric=errors'],
 ]
 const STATS: [string, string, string, LucideIcon, boolean?][] = [
   ['users', 'ユーザー数', '/admin-new/data/users', Users], ['users_today', '今日の新規登録', '/admin-new/data/users', UserPlus], ['login_24h', '24時間のログイン', '/admin-new/data/users', LogIn],

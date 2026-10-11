@@ -1,10 +1,10 @@
-import { Activity, Bell, Bug, Clock, Code2, Cog, Image as ImageIcon, LayoutDashboard, Link2, Mail, MailCheck, MessageSquare, Newspaper, ShieldAlert, ShieldCheck, Users, Vote, Wrench, type LucideIcon } from 'lucide-react'
+import { Activity, ChartLine, Bell, Bug, Clock, Code2, Cog, Image as ImageIcon, LayoutDashboard, Link2, Mail, MailCheck, MessageSquare, Newspaper, ShieldAlert, ShieldCheck, Users, Vote, Wrench, type LucideIcon } from 'lucide-react'
 
 // /admin-new のナビ。data 系は共通の DataPage、それ以外は旧画面(/admin/...)へ橋渡し(移植が済んだら legacy を外す)
 export type NavItem = { to: string; label: string; icon: LucideIcon; keywords?: string; legacy?: string }
 const D = (v: string) => `/admin-new/data/${v}`
 export const NAV: { group: string; items: NavItem[] }[] = [
-  { group: '概要', items: [{ to: '/admin-new', label: 'ダッシュボード', icon: LayoutDashboard, keywords: 'home overview 概要' }] },
+  { group: '概要', items: [{ to: '/admin-new', label: 'ダッシュボード', icon: LayoutDashboard, keywords: 'home overview 概要' }, { to: '/admin-new/analytics', label: '詳細分析', icon: ChartLine, keywords: 'analytics グラフ 推移 chart 統計' }] },
   {
     group: 'ユーザー', items: [
       { to: D('users'), label: 'ユーザー一覧', icon: Users, keywords: 'users ユーザー' },
