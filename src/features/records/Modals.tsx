@@ -237,7 +237,9 @@ export function ProgressOverlay({ state }: { state: ProgressState | null }) {
     <div className="dash-vars fixed inset-0 z-[2000] flex flex-col items-center justify-center gap-4 bg-black/80 px-4">
       {sm ? <p className="text-lg font-semibold text-d-text">{t('rc.pgDone')}</p> : (<><Spinner /><p className="text-base font-medium text-d-text">{state.text}</p></>)}
       {state.total ? (
-        <Progress value={sm ? 100 : pct} label={t('rc.progress')} showValue className="w-[min(360px,80vw)]" />
+        <div className="w-[min(360px,80vw)]">
+          <Progress value={sm ? 100 : pct} label={t('rc.progress')} showValue />
+        </div>
       ) : null}
       {counts ? (
         <div className="grid w-[min(360px,80vw)] grid-cols-3 gap-2" aria-live="polite">
