@@ -153,13 +153,14 @@ export default function DashboardPage() {
         return
       }
       // 小さなバッチを3並列のワーカーで消化し、1バッチ終わるたびに進捗を反映する
-      const size = 10, workers = 3
+      const size = 10, workers = 2
       const chunks: number[][] = []
       for (let i = 0; i < ids.length; i += size) chunks.push(ids.slice(i, i + size))
       const counts = { updated: 0, unchanged: 0, failed: 0 }
       let processed = 0, scraperError = false, next = 0
       const startedAt = Date.now()
-      type BatchRes = { updated_count: number; unchanged_count?: number; failed_count?: number; scraper_error?: boolean }
+      type BatchRes = { updated_count: number; unchanged_count?: number; failed_count?: number; failed_ids?: number[]; scraper_error?: boolean }
+      const failedIds: number[] = []
       const report = () => setProgress({ text: i18n.t('dp.updating', { a: processed, b: ids.length }), done: processed, total: ids.length, counts: { ...counts } })
       report()
       const worker = async () => {
@@ -167,11 +168,12 @@ export default function DashboardPage() {
           const c = chunks[next++]
           // 1バッチの失敗で全体を止めず、失敗件数として集計する
           const r = await apiSend<BatchRes>('update_batch', 'POST', { ids: c }).catch(() => null)
-          if (!r) { counts.failed += c.length; scraperError = true }
+          if (!r) { counts.failed += c.length; failedIds.push(...c); scraperError = true }
           else {
             counts.updated += r.updated_count
             counts.unchanged += r.unchanged_count ?? 0
             counts.failed += r.failed_count ?? 0
+            failedIds.push(...(r.failed_ids ?? []))
             if (r.scraper_error) scraperError = true
           }
           processed += c.length
@@ -179,6 +181,21 @@ export default function DashboardPage() {
         }
       }
       await Promise.all(Array.from({ length: Math.min(workers, chunks.length) }, worker))
+      // 取得に失敗した分は、間を置いて1本ずつ最大2回やり直す(X側の一時的な制限・混雑対策)
+      for (let round = 0; round < 2 && failedIds.length; round++) {
+        await new Promise((res) => setTimeout(res, 4000 * (round + 1)))
+        const todo = failedIds.splice(0)
+        for (let i = 0; i < todo.length; i += size) {
+          const c = todo.slice(i, i + size)
+          const r = await apiSend<BatchRes>('update_batch', 'POST', { ids: c }).catch(() => null)
+          if (!r) { failedIds.push(...c); continue }
+          counts.failed -= c.length - (r.failed_count ?? 0)
+          counts.updated += r.updated_count
+          counts.unchanged += r.unchanged_count ?? 0
+          failedIds.push(...(r.failed_ids ?? []))
+          report()
+        }
+      }
       await profileUpdate
       await refreshAll()
       setProgress({
