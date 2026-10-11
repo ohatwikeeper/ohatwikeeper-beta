@@ -206,16 +206,55 @@ export function SurveyModal({ open, onClose }: { open: boolean; onClose: (noShow
 }
 
 /* ── 一括更新・一括登録の進捗オーバーレイ ── */
-export function ProgressOverlay({ state }: { state: { text: string; done?: number; total?: number } | null }) {
+export type UpdateCounts = { updated: number; unchanged: number; failed: number }
+export type ProgressState = {
+  text: string
+  done?: number
+  total?: number
+  counts?: UpdateCounts
+  /** 完了サマリー。指定すると結果カードを表示し、onClose で閉じる */
+  summary?: { counts: UpdateCounts; total: number; elapsedMs: number; scraperError: boolean; onClose: () => void }
+}
+
+function CountCell({ label, value, tone }: { label: string; value: number; tone?: 'ok' | 'bad' }) {
+  return (
+    <div className="flex flex-col gap-1 rounded-xl border border-d-border bg-d-med px-3 py-2">
+      <span className="text-xs text-d-text2">{label}</span>
+      <span className={`text-xl font-semibold tabular-nums ${tone === 'bad' && value > 0 ? 'text-red-400' : tone === 'ok' ? 'text-emerald-400' : 'text-d-text'}`}>
+        {value.toLocaleString()}
+      </span>
+    </div>
+  )
+}
+
+export function ProgressOverlay({ state }: { state: ProgressState | null }) {
   const { t } = useTranslation()
   if (!state) return null
   const pct = state.total ? Math.min(100, Math.round(((state.done ?? 0) / state.total) * 100)) : 0
+  const sm = state.summary
+  const counts = sm?.counts ?? state.counts
   return (
-    <div className="dash-vars fixed inset-0 z-[2000] flex flex-col items-center justify-center gap-4 bg-black/80">
-      <Spinner />
-      <p className="text-base font-medium text-d-text">{state.text}</p>
+    <div className="dash-vars fixed inset-0 z-[2000] flex flex-col items-center justify-center gap-4 bg-black/80 px-4">
+      {sm ? <p className="text-lg font-semibold text-d-text">{t('rc.pgDone')}</p> : (<><Spinner /><p className="text-base font-medium text-d-text">{state.text}</p></>)}
       {state.total ? (
-        <Progress value={pct} label={t('rc.progress')} showValue className="w-[min(360px,80vw)]" />
+        <Progress value={sm ? 100 : pct} label={t('rc.progress')} showValue className="w-[min(360px,80vw)]" />
+      ) : null}
+      {counts ? (
+        <div className="grid w-[min(360px,80vw)] grid-cols-3 gap-2" aria-live="polite">
+          <CountCell label={t('rc.pgUpdated')} value={counts.updated} tone="ok" />
+          <CountCell label={t('rc.pgUnchanged')} value={counts.unchanged} />
+          <CountCell label={t('rc.pgFailed')} value={counts.failed} tone="bad" />
+        </div>
+      ) : null}
+      {sm ? (
+        <div className="flex w-[min(360px,80vw)] flex-col gap-3">
+          <p className="text-sm text-d-text2">
+            {t('rc.pgTotal')}: {sm.total.toLocaleString()} · {t('rc.pgElapsed')}: {(sm.elapsedMs / 1000).toFixed(1)}s
+          </p>
+          {sm.counts.failed > 0 ? <p className="text-sm text-d-text2">{t('rc.pgFailHint')}</p> : null}
+          {sm.scraperError ? <p className="text-sm text-red-400">{t('rc.pgScraperErr')}</p> : null}
+          <DButton onClick={sm.onClose}>{t('rc.pgClose')}</DButton>
+        </div>
       ) : null}
     </div>
   )

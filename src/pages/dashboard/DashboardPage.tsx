@@ -31,10 +31,10 @@ import { onCommand, type DashCommand } from '@/lib/commands'
 import RecordPanel from '@/features/records/RecordPanel'
 import RecordsSection from '@/features/records/RecordsSection'
 import {
-  BulkAddModal, ImageModal, NotificationsModal, ProgressOverlay, SurveyModal, ZipModal,
+  BulkAddModal, ImageModal, NotificationsModal, ProgressOverlay, SurveyModal, ZipModal, type ProgressState,
 } from '@/features/records/Modals'
 
-type Progress = { text: string; done?: number; total?: number } | null
+type Progress = ProgressState | null
 
 const errorScreen = (e: ApiError) => {
   const map: Record<string, { text: string; href: string; label: string }> = {
@@ -153,17 +153,29 @@ export default function DashboardPage() {
       const size = 50, parallel = 3
       const chunks: number[][] = []
       for (let i = 0; i < ids.length; i += size) chunks.push(ids.slice(i, i + size))
-      let updated = 0, processed = 0
+      const counts = { updated: 0, unchanged: 0, failed: 0 }
+      let processed = 0, scraperError = false
+      const startedAt = Date.now()
+      type BatchRes = { updated_count: number; unchanged_count?: number; failed_count?: number; scraper_error?: boolean }
       for (let i = 0; i < chunks.length; i += parallel) {
         const group = chunks.slice(i, i + parallel)
-        const res = await Promise.all(group.map((c) => apiSend<{ updated_count: number }>('update_batch', 'POST', { ids: c })))
-        res.forEach((r) => { updated += r.updated_count })
+        // 1バッチの失敗で全体を止めず、失敗件数として集計する
+        const res = await Promise.all(group.map((c) => apiSend<BatchRes>('update_batch', 'POST', { ids: c }).catch(() => null)))
+        res.forEach((r, k) => {
+          if (!r) { counts.failed += group[k].length; scraperError = true; return }
+          counts.updated += r.updated_count
+          counts.unchanged += r.unchanged_count ?? 0
+          counts.failed += r.failed_count ?? 0
+          if (r.scraper_error) scraperError = true
+        })
         processed = Math.min(processed + group.reduce((n, c) => n + c.length, 0), ids.length)
-        setProgress({ text: i18n.t('dp.updating', { a: processed, b: ids.length }), done: processed, total: ids.length })
+        setProgress({ text: i18n.t('dp.updating', { a: processed, b: ids.length }), done: processed, total: ids.length, counts: { ...counts } })
       }
-      setProgress({ text: i18n.t('dp.updated', { n: updated }) })
       await refreshAll()
-      setTimeout(() => setProgress(null), 1500)
+      setProgress({
+        text: i18n.t('dp.updated', { n: counts.updated }), done: ids.length, total: ids.length,
+        summary: { counts, total: ids.length, elapsedMs: Date.now() - startedAt, scraperError, onClose: () => setProgress(null) },
+      })
     } catch (e) {
       setProgress({ text: i18n.t('dp.err', { m: friendlyError(e) }) })
       setTimeout(() => setProgress(null), 3000)
