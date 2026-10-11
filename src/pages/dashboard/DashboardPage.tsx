@@ -143,34 +143,43 @@ export default function DashboardPage() {
   const runUpdate = async (period: 'month' | 'all') => {
     try {
       setProgress({ text: i18n.t('dp.preparing') })
-      await apiSend('update_profile', 'POST').catch(() => {})
+      // プロフィール更新は待たずに並行実行(進捗表示を遅らせない)
+      const profileUpdate = apiSend('update_profile', 'POST').catch(() => {})
       const { ids } = await apiGet<{ ids: number[] }>(`record_ids?period=${period}`)
       if (ids.length === 0) {
+        await profileUpdate
         setProgress({ text: i18n.t('dp.nothing') })
         setTimeout(() => setProgress(null), 1500)
         return
       }
-      const size = 50, parallel = 3
+      // 小さなバッチを3並列のワーカーで消化し、1バッチ終わるたびに進捗を反映する
+      const size = 10, workers = 3
       const chunks: number[][] = []
       for (let i = 0; i < ids.length; i += size) chunks.push(ids.slice(i, i + size))
       const counts = { updated: 0, unchanged: 0, failed: 0 }
-      let processed = 0, scraperError = false
+      let processed = 0, scraperError = false, next = 0
       const startedAt = Date.now()
       type BatchRes = { updated_count: number; unchanged_count?: number; failed_count?: number; scraper_error?: boolean }
-      for (let i = 0; i < chunks.length; i += parallel) {
-        const group = chunks.slice(i, i + parallel)
-        // 1バッチの失敗で全体を止めず、失敗件数として集計する
-        const res = await Promise.all(group.map((c) => apiSend<BatchRes>('update_batch', 'POST', { ids: c }).catch(() => null)))
-        res.forEach((r, k) => {
-          if (!r) { counts.failed += group[k].length; scraperError = true; return }
-          counts.updated += r.updated_count
-          counts.unchanged += r.unchanged_count ?? 0
-          counts.failed += r.failed_count ?? 0
-          if (r.scraper_error) scraperError = true
-        })
-        processed = Math.min(processed + group.reduce((n, c) => n + c.length, 0), ids.length)
-        setProgress({ text: i18n.t('dp.updating', { a: processed, b: ids.length }), done: processed, total: ids.length, counts: { ...counts } })
+      const report = () => setProgress({ text: i18n.t('dp.updating', { a: processed, b: ids.length }), done: processed, total: ids.length, counts: { ...counts } })
+      report()
+      const worker = async () => {
+        while (next < chunks.length) {
+          const c = chunks[next++]
+          // 1バッチの失敗で全体を止めず、失敗件数として集計する
+          const r = await apiSend<BatchRes>('update_batch', 'POST', { ids: c }).catch(() => null)
+          if (!r) { counts.failed += c.length; scraperError = true }
+          else {
+            counts.updated += r.updated_count
+            counts.unchanged += r.unchanged_count ?? 0
+            counts.failed += r.failed_count ?? 0
+            if (r.scraper_error) scraperError = true
+          }
+          processed += c.length
+          report()
+        }
       }
+      await Promise.all(Array.from({ length: Math.min(workers, chunks.length) }, worker))
+      await profileUpdate
       await refreshAll()
       setProgress({
         text: i18n.t('dp.updated', { n: counts.updated }), done: ids.length, total: ids.length,
