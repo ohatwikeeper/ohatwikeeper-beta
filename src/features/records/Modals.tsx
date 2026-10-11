@@ -9,7 +9,11 @@ import DModal from '@/components/dashboard-ui/DModal'
 import { DButton } from '@/components/dashboard-ui/DButton'
 import { Spinner } from '@/components/ui/spinner'
 import { DatePicker } from '@/components/arc/date-picker/date-picker'
-import { Progress } from '@/components/arc/progress/progress'
+import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { CircleAlertIcon, CircleCheckIcon, TriangleAlertIcon } from 'lucide-react'
 
 const toDate = (v: string) => (v ? new Date(`${v}T00:00:00`) : undefined)
 const fromDate = (d?: Date) => (d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : '')
@@ -218,9 +222,9 @@ export type ProgressState = {
 
 function CountCell({ label, value, tone }: { label: string; value: number; tone?: 'ok' | 'bad' }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-d-border bg-d-med px-3 py-2">
-      <span className="text-xs text-d-text2">{label}</span>
-      <span className={`text-xl font-semibold tabular-nums ${tone === 'bad' && value > 0 ? 'text-red-400' : tone === 'ok' ? 'text-emerald-400' : 'text-d-text'}`}>
+    <div className="flex flex-col gap-1 rounded-lg bg-muted/50 px-3 py-2.5 ring-1 ring-foreground/10">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={`text-2xl font-semibold tabular-nums ${tone === 'bad' && value > 0 ? 'text-destructive' : tone === 'ok' && value > 0 ? 'text-emerald-500' : 'text-foreground'}`}>
         {value.toLocaleString()}
       </span>
     </div>
@@ -233,31 +237,55 @@ export function ProgressOverlay({ state }: { state: ProgressState | null }) {
   const pct = state.total ? Math.min(100, Math.round(((state.done ?? 0) / state.total) * 100)) : 0
   const sm = state.summary
   const counts = sm?.counts ?? state.counts
+  const hasIssue = !!sm && (sm.counts.failed > 0 || sm.scraperError)
   return (
-    <div className="dash-vars fixed inset-0 z-[2000] flex flex-col items-center justify-center gap-4 bg-black/80 px-4">
-      {sm ? <p className="text-lg font-semibold text-d-text">{t('rc.pgDone')}</p> : (<><Spinner /><p className="text-base font-medium text-d-text">{state.text}</p></>)}
-      {state.total ? (
-        <div className="w-[min(360px,80vw)]">
-          <Progress value={sm ? 100 : pct} label={t('rc.progress')} showValue />
-        </div>
-      ) : null}
-      {counts ? (
-        <div className="grid w-[min(360px,80vw)] grid-cols-3 gap-2" aria-live="polite">
-          <CountCell label={t('rc.pgUpdated')} value={counts.updated} tone="ok" />
-          <CountCell label={t('rc.pgUnchanged')} value={counts.unchanged} />
-          <CountCell label={t('rc.pgFailed')} value={counts.failed} tone="bad" />
-        </div>
-      ) : null}
-      {sm ? (
-        <div className="flex w-[min(360px,80vw)] flex-col gap-3">
-          <p className="text-sm text-d-text2">
-            {t('rc.pgTotal')}: {sm.total.toLocaleString()} · {t('rc.pgElapsed')}: {(sm.elapsedMs / 1000).toFixed(1)}s
-          </p>
-          {sm.counts.failed > 0 ? <p className="text-sm text-d-text2">{t('rc.pgFailHint')}</p> : null}
-          {sm.scraperError ? <p className="text-sm text-red-400">{t('rc.pgScraperErr')}</p> : null}
-          <DButton onClick={sm.onClose}>{t('rc.pgClose')}</DButton>
-        </div>
-      ) : null}
+    <div className="dash-vars fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-live="polite">
+      <Card className="w-full max-w-md shadow-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            {sm ? (hasIssue ? <TriangleAlertIcon className="size-5 text-amber-500" /> : <CircleCheckIcon className="size-5 text-emerald-500" />) : <Spinner />}
+            {sm ? t('rc.pgDone') : state.text}
+          </CardTitle>
+          {sm ? (
+            <CardDescription>
+              {t('rc.pgTotal')}: {sm.total.toLocaleString()} · {t('rc.pgElapsed')}: {(sm.elapsedMs / 1000).toFixed(1)}s
+            </CardDescription>
+          ) : null}
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {state.total ? (
+            <Progress value={sm ? 100 : pct}>
+              <ProgressLabel>{t('rc.progress')}</ProgressLabel>
+              <ProgressValue />
+            </Progress>
+          ) : null}
+          {counts ? (
+            <div className="grid grid-cols-3 gap-2">
+              <CountCell label={t('rc.pgUpdated')} value={counts.updated} tone="ok" />
+              <CountCell label={t('rc.pgUnchanged')} value={counts.unchanged} />
+              <CountCell label={t('rc.pgFailed')} value={counts.failed} tone="bad" />
+            </div>
+          ) : null}
+          {sm?.counts.failed ? (
+            <Alert>
+              <CircleAlertIcon />
+              <AlertDescription>{t('rc.pgFailHint')}</AlertDescription>
+            </Alert>
+          ) : null}
+          {sm?.scraperError ? (
+            <Alert variant="destructive">
+              <TriangleAlertIcon />
+              <AlertTitle>{t('rc.pgFailed')}</AlertTitle>
+              <AlertDescription>{t('rc.pgScraperErr')}</AlertDescription>
+            </Alert>
+          ) : null}
+        </CardContent>
+        {sm ? (
+          <CardFooter className="justify-end">
+            <Button onClick={sm.onClose}>{t('rc.pgClose')}</Button>
+          </CardFooter>
+        ) : null}
+      </Card>
     </div>
   )
 }
