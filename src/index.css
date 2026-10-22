@@ -1833,6 +1833,8 @@ img { display: block; max-width: 100%; }
     --color-d-accent-h: var(--d-accent-h);
     --color-d-accent-fg: var(--d-accent-fg);
     --color-d-danger: var(--d-danger);
+  --color-d-success: var(--d-success);
+  --color-d-warning: var(--d-warning);
     --color-d-dev: var(--d-dev);
 }
 
@@ -1841,7 +1843,7 @@ img { display: block; max-width: 100%; }
     --d-text: #f3f3ef; --d-text2: #a5a5b0; --d-text3: #80808c;
     --d-accent: var(--d-accent-user, #6dcbf7); --d-accent-h: var(--d-accent-h-user, #8fdaf9);
     --d-accent-fg: #0b0d02;
-    --d-danger: #ff5d4a; --d-serif: 'Geist Variable','Inter','Noto Sans JP',sans-serif; --d-dev: #8b5cf6;
+    --d-success: #4ade80; --d-warning: #fbbf24; --d-danger: #ff5d4a; --d-serif: 'Geist Variable','Inter','Noto Sans JP',sans-serif; --d-dev: #8b5cf6;
 
     --background: var(--d-bg);
     --foreground: var(--d-text);
@@ -2133,3 +2135,10 @@ article:focus, article:focus-visible, [tabindex="-1"]:focus, [tabindex="-1"]:foc
   --tw-ring-offset-shadow: 0 0 #0000 !important;
   --ring: color-mix(in oklab, currentColor 30%, transparent) !important;
 }
+
+/* /admin-new: 入場アニメーション(--i で段階表示)。transform/opacity/blur のみ */
+@keyframes an-rise { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } to { opacity: 1; transform: none; filter: blur(0); } }
+.an-rise { animation: an-rise .45s cubic-bezier(.2,0,0,1) both; animation-delay: calc(var(--i, 0) * 60ms); }
+.an-press { transition-property: scale, background-color, border-color, color; transition-duration: .15s; }
+.an-press:active { scale: .97; }
+@media (prefers-reduced-motion: reduce) { .an-rise { animation: none; } .an-press:active { scale: 1; } }
