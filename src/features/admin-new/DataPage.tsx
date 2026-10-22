@@ -196,6 +196,9 @@ export default function DataPage() {
   useEffect(() => { try { setMyCols(JSON.parse(localStorage.getItem(colKey) ?? '[]')) } catch { setMyCols([]) }; setQInput(sp.get('q') ?? ''); setSelIdx(null) }, [view]) // eslint-disable-line react-hooks/exhaustive-deps
   const page = Math.max(1, Number(sp.get('page')) || 1)
   const asc = sp.get('dir') === 'asc'
+  const sortCol = sp.get('sort') ?? ''
+  // 列ヘッダのクリック: 降順 → 昇順 → 解除
+  const sortBy = (c: string) => patch(sortCol !== c ? { sort: c, dir: null } : !asc ? { sort: c, dir: 'asc' } : { sort: null, dir: null })
   const qs = useMemo(() => { const n = new URLSearchParams(sp); n.delete('page'); return n.toString() }, [sp])
   const patch = useCallback((o: Record<string, string | null>) => {
     setSp((p) => { const n = new URLSearchParams(p); for (const [k, v] of Object.entries(o)) v ? n.set(k, v) : n.delete(k); if (!('page' in o)) n.delete('page'); return n }, { replace: true })
@@ -258,7 +261,7 @@ export default function DataPage() {
             <Input value={qInput} onChange={(e) => setQInput(e.target.value)} placeholder="検索(ID・ユーザー名・リクエストID等)" className="h-9 pl-8" />
           </div>
           {res?.dated && <DateRangePicker value={dr} onChange={(v) => patch({ from: v?.from ? format(v.from, 'yyyy-MM-dd') : null, to: v?.to ? format(v.to, 'yyyy-MM-dd') : null })} />}
-          <Button variant="outline" size="sm" className="h-9 !text-d-text" onClick={() => patch({ dir: asc ? null : 'asc' })}>{asc ? <ArrowUpWideNarrow className="size-3.5" /> : <ArrowDownWideNarrow className="size-3.5" />}{asc ? '古い順' : '新しい順'}</Button>
+          <Button variant="outline" size="sm" className="h-9 !text-d-text" onClick={() => patch({ dir: asc ? null : 'asc' })}>{asc ? <ArrowUpWideNarrow className="size-3.5" /> : <ArrowDownWideNarrow className="size-3.5" />}{sortCol ? (asc ? '昇順' : '降順') : asc ? '古い順' : '新しい順'}</Button>
           <Popover>
             <PopoverTrigger render={<Button variant="outline" size="sm" className="h-9 !text-d-text" />}><Columns3 className="size-3.5" />カラム</PopoverTrigger>
             <PopoverContent align="end" className="max-h-[70vh] w-72 overflow-y-auto p-2">
@@ -306,7 +309,7 @@ export default function DataPage() {
 
         <div className="overflow-x-auto rounded-xl border border-d-border">
           <table className="w-full min-w-max text-sm">
-            <thead className="bg-d-med/50 text-left text-xs text-d-text2"><tr>{cur.map((c) => <th key={c} className="px-3 py-2 font-medium whitespace-nowrap">{lbl(c)}</th>)}</tr></thead>
+            <thead className="bg-d-med/50 text-left text-xs text-d-text2"><tr>{cur.map((c) => <th key={c} className="p-0 font-medium whitespace-nowrap" aria-sort={sortCol === c ? (asc ? 'ascending' : 'descending') : 'none'}><button type="button" onClick={() => sortBy(c)} className={`flex w-full items-center gap-1 px-3 py-2 text-left hover:bg-d-med/60 ${sortCol === c ? 'text-d-text' : ''}`}>{lbl(c)}{sortCol === c && (asc ? <ArrowUpWideNarrow className="size-3" /> : <ArrowDownWideNarrow className="size-3" />)}</button></th>)}</tr></thead>
             <tbody className="divide-y divide-d-border">
               {loading && !res ? Array.from({ length: 8 }, (_, i) => <tr key={i}><td colSpan={Math.max(1, cur.length)} className="p-2"><Skeleton className="h-8" /></td></tr>)
                 : res?.rows.map((r, i) => (
