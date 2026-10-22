@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { SimpleSelect } from '@/components/ui/simple-select'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
 import { loadSession } from '@/lib/session'
 import { IdentityOtp } from '../admin/IdentityOtp'
@@ -63,6 +64,9 @@ function Detail({ row, idx, total, view, res, onNav, onClose, onChanged, onEdit,
 }) {
   const [sum, setSum] = useState<Record<string, number> | null>(null)
   const [note, setNote] = useState('')
+  const [arc, setArc] = useState(false)
+  const [arcReason, setArcReason] = useState('')
+  const [arcConfirm, setArcConfirm] = useState('')
   const entries = row ? Object.entries(row).filter(([k]) => k !== '__list') : []
   useEffect(() => { setNote(String(row?.admin_note ?? '')) }, [row])
   useEffect(() => {
@@ -71,6 +75,7 @@ function Detail({ row, idx, total, view, res, onNav, onClose, onChanged, onEdit,
   }, [row, view])
   const post = async (path: string, json?: unknown) => { const d = await adminTry(`data/${path}`, { method: 'POST', json: json ?? {} }); if (d) { toast.success('更新しました'); onChanged() } return !!d }
   return (
+    <>
     <Sheet open={!!row} onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-xl" onKeyDown={(e) => {
         if (e.target instanceof HTMLElement && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return
@@ -101,6 +106,7 @@ function Detail({ row, idx, total, view, res, onNav, onClose, onChanged, onEdit,
               }}>このユーザーとしてログイン</Button>
               <Button size="sm" variant="outline" nativeButton={false} render={<Link to={`/admin-new/data/api-logs?q=${encodeURIComponent(String(row.x_username ?? row.id))}`} />}>APIログ</Button>
               <Button size="sm" variant="outline" nativeButton={false} render={<Link to={`/admin-new/data/user-actions?q=${encodeURIComponent(String(row.id))}`} />}>操作ログ</Button>
+              <Button size="sm" variant="destructive" onClick={() => { setArcReason(''); setArcConfirm(''); setArc(true) }}><Trash2 className="size-3.5" />アカウント削除</Button>
               <Button size="sm" variant="outline" nativeButton={false} render={<Link to={`/admin-new/data/api-errors?q=${encodeURIComponent(String(row.id))}`} />}>エラー</Button>
             </div>
           )}
@@ -145,6 +151,25 @@ function Detail({ row, idx, total, view, res, onNav, onClose, onChanged, onEdit,
         </div>
       </SheetContent>
     </Sheet>
+      <Dialog open={arc} onOpenChange={setArc}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>アカウントを削除(退避)</DialogTitle>
+            <DialogDescription>全データを削除済みユーザーへ移動します。「削除済みユーザー」から復元できます。本人にはメールで通知します。</DialogDescription>
+          </DialogHeader>
+          <Label>理由(お問い合わせ内容など)</Label>
+          <Textarea value={arcReason} onChange={(e) => setArcReason(e.target.value)} />
+          <Label>確認のため「{String(row?.x_username ?? row?.id)}」と入力</Label>
+          <Input value={arcConfirm} onChange={(e) => setArcConfirm(e.target.value)} />
+          <DialogFooter>
+            <Button variant="destructive" disabled={!arcReason.trim() || arcConfirm !== String(row?.x_username ?? row?.id)} onClick={async () => {
+              const d = await adminTry<{ mailed: boolean }>(`archive/users/${row!.id}/archive`, { method: 'POST', json: { reason: arcReason, confirm: arcConfirm } })
+              if (d) { toast.success(d.mailed ? '削除しました(通知メール送信済み)' : '削除しました(通知メールなし)'); setArc(false); onClose(); onChanged() }
+            }}>削除する</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
