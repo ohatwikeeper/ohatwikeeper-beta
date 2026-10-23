@@ -63,7 +63,7 @@ export default function AppShell() {
               <ScrollArea fade={0} className="min-h-0 flex-1" viewportClassName="pb-8 lg:pr-3" viewportRef={mainRef}>
                 <SlotCtx.Provider value={setSide}>
                   <SetupBanner />
-                  <Outlet />
+                  <div key={pathname} className="page-blur-in"><Outlet /></div>
                 </SlotCtx.Provider>
               </ScrollArea>
             <SetupLock />
