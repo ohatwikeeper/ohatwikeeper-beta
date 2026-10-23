@@ -39,7 +39,6 @@ import {
   Palette,
 } from 'lucide-react'
 import { CONFIG } from '@/lib/config'
-import { Spinner } from '@/components/ui/spinner'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import SaveButton from '@/components/dashboard-ui/SaveButton'
 import { ThemePanel } from './theme'
@@ -164,14 +163,7 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="dash-scope flex items-center justify-center">
-        <div className="text-center text-d-text3">
-          <Spinner className="mb-3" />
-          <PageLoader />
-        </div>
-      </div>
-    )
+    return <PageLoader />
   }
 
   if (error || !data) {
