@@ -40,6 +40,7 @@ import { SimpleSelect } from '@/components/ui/simple-select'
 import SaveButton from '@/components/dashboard-ui/SaveButton'
 import { ThemePanel } from './theme'
 import { EmailChange } from './email'
+import { usePanelMotion, useItemMotion, Reveal } from './motion'
 import { WidgetBuilder } from './widget-builder'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
@@ -207,7 +208,7 @@ export default function SettingsPage() {
         </Tabs>
 
         {/* Tab Content */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           {activeTab === 'account' && (
             <AccountTab data={data} runAction={runAction} />
           )}
@@ -224,8 +225,8 @@ export default function SettingsPage() {
             <WebhooksTab data={data} runAction={runAction} />
           )}
 
-          {activeTab === 'theme' && <ThemePanel />}
-          {activeTab === 'security' && (<><PasskeySection /><SecuritySection /></>)}
+          {activeTab === 'theme' && <PanelShell key="theme"><ThemePanel /></PanelShell>}
+          {activeTab === 'security' && <PanelShell key="security"><PasskeySection /><SecuritySection /></PanelShell>}
           {activeTab === 'widgets' && (
             <WidgetsTab data={data} runAction={runAction} />
           )}
@@ -245,6 +246,7 @@ function AccountTab({
   data: SettingsData
   runAction: (fn: () => Promise<any>, msg?: string) => Promise<any>
 }) {
+  const panel = usePanelMotion()
   const { t } = useTranslation()
   const u = data.user
   const profileUrl = CONFIG.PAGES.PROFILE(u.public_uuid)
@@ -254,9 +256,7 @@ function AccountTab({
   return (
     <motion.div
       key="account"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      {...panel}
       className="space-y-6"
     >
       {/* Public Profile Visibility */}
@@ -297,7 +297,7 @@ function AccountTab({
                 u.is_public ? t('st.toast.private') : t('st.toast.public')
               )
             }
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all shrink-0 ${
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-[background-color,color,border-color,scale] duration-200 active:scale-[0.96] shrink-0 ${
               u.is_public
                 ? 'border border-red-500/40 text-red-400'
                 : 'bg-d-text text-d-bg '
@@ -463,6 +463,7 @@ function NotifyTab({
   data: SettingsData
   runAction: (fn: () => Promise<any>, msg?: string) => Promise<any>
 }) {
+  const panel = usePanelMotion()
   const { t } = useTranslation()
   const [notify, setNotify] = useState({
     reminder_enabled: data.notify.reminder_enabled,
@@ -493,9 +494,7 @@ function NotifyTab({
   return (
     <motion.div
       key="notify"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      {...panel}
       className="space-y-6"
     >
       <div className="border-t border-d-border pt-6 mt-0! first:border-t-0 first:pt-0 space-y-6">
@@ -523,7 +522,7 @@ function NotifyTab({
           </div>
 
           {/* Reminder Times */}
-          {notify.reminder_enabled && (
+          <Reveal show={notify.reminder_enabled}>
             <div className="py-4">
               <label className="block text-xs font-bold text-d-text2 uppercase tracking-wider mb-2">
                 {t('st.remindTimes')}
@@ -546,7 +545,7 @@ function NotifyTab({
                 ))}
               </div>
             </div>
-          )}
+          </Reveal>
           </div>
 
           {/* Award Email */}
@@ -595,13 +594,12 @@ function NotifyTab({
 // Tab 3: API Key Management
 // -------------------------------------------------------------
 function ApiTab() {
+  const panel = usePanelMotion()
   const { t } = useTranslation()
   return (
     <motion.div
       key="api"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      {...panel}
       className="space-y-6"
     >
       <div className="border-t border-d-border pt-6 mt-0! first:border-t-0 first:pt-0">
@@ -644,6 +642,8 @@ function WebhooksTab({
   data: SettingsData
   runAction: (fn: () => Promise<any>, msg?: string) => Promise<any>
 }) {
+  const itemMotion = useItemMotion()
+  const panel = usePanelMotion()
   const { t } = useTranslation()
   const [form, setForm] = useState({ name: '', url: '', events: ['record_added'] })
   const [adding, setAdding] = useState(false)
@@ -668,9 +668,7 @@ function WebhooksTab({
   return (
     <motion.div
       key="webhooks"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      {...panel}
       className="space-y-6"
     >
       <div className="border-t border-d-border pt-6 mt-0! first:border-t-0 first:pt-0">
@@ -693,14 +691,18 @@ function WebhooksTab({
               {t('st.whNone')}
             </div>
           ) : (
-            data.webhooks.map((w) => (
-              <WebhookItem key={w.id} webhook={w} runAction={runAction} />
-            ))
+            <AnimatePresence initial={false}>
+              {data.webhooks.map((w) => (
+                <motion.div key={w.id} {...itemMotion}>
+                  <WebhookItem webhook={w} runAction={runAction} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
 
         {/* Create Webhook Form */}
-        {data.webhooks.length < 5 && (
+        <Reveal show={data.webhooks.length < 5}>
           <div className="p-5 rounded-xl bg-d-bg border border-d-border space-y-4">
             <h3 className="text-sm font-bold text-d-text flex items-center gap-1.5">
               <Plus className="w-4 h-4 text-d-text" /> {t('st.whNew')}
@@ -746,7 +748,7 @@ function WebhooksTab({
               </Button>
             </div>
           </div>
-        )}
+        </Reveal>
       </div>
     </motion.div>
   )
@@ -840,7 +842,7 @@ function WebhookItem({
 
       <div className="font-mono text-xs text-d-text3 break-all">{w.url}</div>
 
-      {showSecret && (
+      <Reveal show={showSecret}>
         <div className="p-2 rounded bg-black/40 border border-d-border/60 text-xs font-mono text-d-text2 flex items-center justify-between">
           <span className="truncate">Secret: {w.secret}</span>
           <Button variant="outline"
@@ -853,7 +855,7 @@ function WebhookItem({
             {t('st.copy')}
           </Button>
         </div>
-      )}
+      </Reveal>
     </div>
   )
 }
@@ -868,6 +870,8 @@ function WidgetsTab({
   data: SettingsData
   runAction: (fn: () => Promise<any>, msg?: string) => Promise<any>
 }) {
+  const itemMotion = useItemMotion()
+  const panel = usePanelMotion()
   const { t } = useTranslation()
   const [name, setName] = useState('')
   const [origins, setOrigins] = useState<Record<number, string>>({})
@@ -883,9 +887,7 @@ function WidgetsTab({
   return (
     <motion.div
       key="widgets"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      {...panel}
       className="space-y-6"
     >
       <div className="border-t border-d-border pt-6 mt-0! first:border-t-0 first:pt-0">
@@ -904,10 +906,10 @@ function WidgetsTab({
               {t('st.wgNone')}
             </div>
           ) : (
-            data.widgets.map((w) => {
+            <AnimatePresence initial={false}>{data.widgets.map((w) => {
               const widgetUrl = `${window.location.origin}/widget/v/${w.token}`
               return (
-                <div key={w.id} className="border-t border-d-border pt-4 space-y-3">
+                <motion.div key={w.id} {...itemMotion} className="border-t border-d-border pt-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="font-bold text-sm text-d-text">{w.name}</span>
@@ -981,9 +983,9 @@ function WidgetsTab({
                       </Button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )
-            })
+            })}</AnimatePresence>
           )}
         </div>
 
@@ -992,4 +994,10 @@ function WidgetsTab({
       </div>
     </motion.div>
   )
+}
+
+/** 子に動きを持たないタブ(テーマ・セキュリティ)を、他タブと同じ出入りで包む */
+function PanelShell({ children }: { children: React.ReactNode }) {
+  const panel = usePanelMotion()
+  return <motion.div {...panel} className="space-y-6">{children}</motion.div>
 }

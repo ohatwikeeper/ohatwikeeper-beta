@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { Reveal } from './motion'
 import { ChartLine, ChevronLeft } from 'lucide-react'
 import FacetedFilterBar from '@/components/dashboard-ui/FacetedFilterBar'
 import PageHeader from '@/components/dashboard-ui/PageHeader'
@@ -152,15 +153,15 @@ export default function ApiUsagePage() {
                     <span className="min-w-0 flex-1 truncate font-mono text-xs">{l.full_path}</span>
                     <span className="shrink-0 text-xs tabular-nums text-d-text3">{l.response_time_ms != null ? `${l.response_time_ms}ms` : ''}</span>
                     <span className="hidden shrink-0 text-xs tabular-nums text-d-text3 sm:inline">{l.created_at?.slice(0, 19).replace('T', ' ')}</span>
-                    <i className={`bx bx-chevron-down shrink-0 text-d-text3 transition-transform ${open === l.id ? 'rotate-180' : ''}`} />
+                    <i className={`bx bx-chevron-down shrink-0 text-d-text3 transition-transform duration-200 ${open === l.id ? 'rotate-180' : ''}`} />
                   </button>
-                  {open === l.id && (
+                  <Reveal show={open === l.id}>
                     <dl className="grid gap-x-6 gap-y-2 pb-4 text-xs sm:grid-cols-2">
                       {[['Time', l.created_at?.slice(0, 19).replace('T', ' ')], ['IP', l.ip_address], ['Source', l.source_type], ['User-Agent', l.user_agent]].map(([k, v]) => (
                         <div key={k} className="min-w-0"><dt className="text-d-text3">{k}</dt><dd className="break-all">{v || '—'}</dd></div>
                       ))}
                     </dl>
-                  )}
+                  </Reveal>
                 </li>
               ))}
             </ul>

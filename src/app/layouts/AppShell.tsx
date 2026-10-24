@@ -17,22 +17,26 @@ const PAGE_OUT_MS = 160
  * サイドメニューのある全ページ共通の外枠。サイドバーの枠・スクロール領域はページ間移動でも作り直さず、
  * 各レイアウトが SidebarSlot でサイドバーの中身だけを差し込む(リロード感なし)。
  */
+/** ページ切り替え演出の単位。設定画面のタブ(/settings/notify など)は同じページとして扱い、作り直さない */
+const pageKeyOf = (p: string) => (/^\/settings(\.php|_api)?(\/[^/]+)?\/?$/.test(p) ? '/settings' : p)
+
 export default function AppShell() {
   const { t: tr } = useTranslation()
   const { pathname, hash } = useLocation()
+  const pageKey = pageKeyOf(pathname)
   const [side, setSide] = useState<ReactNode>(null)
   // ページ移動: 前のページをブラーで消してから、新しいページをブラーで表示する
   const outlet = useOutlet()
-  const [shownKey, setShownKey] = useState(pathname)
+  const [shownKey, setShownKey] = useState(pageKey)
   const frozen = useRef(outlet)
-  if (shownKey === pathname) frozen.current = outlet
-  const leaving = shownKey !== pathname
+  if (shownKey === pageKey) frozen.current = outlet
+  const leaving = shownKey !== pageKey
   const pageRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (shownKey === pathname) return
-    const t = setTimeout(() => setShownKey(pathname), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : PAGE_OUT_MS)
+    if (shownKey === pageKey) return
+    const t = setTimeout(() => setShownKey(pageKey), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : PAGE_OUT_MS)
     return () => clearTimeout(t)
-  }, [pathname, shownKey])
+  }, [pageKey, shownKey])
   // ローディング表示が出ている間はブラーを保留し、消えた時点で表示アニメーションを始める
   useLayoutEffect(() => {
     const el = pageRef.current
@@ -61,7 +65,7 @@ export default function AppShell() {
     if (hash) return
     mainRef.current?.scrollTo(0, 0)
     shellRef.current?.scrollTo(0, 0)
-  }, [pathname, hash])
+  }, [pageKey, hash])
 
   return (
     <TooltipProvider>
