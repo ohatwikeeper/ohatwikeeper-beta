@@ -634,6 +634,7 @@ function ApiTab({
         <p className="text-xs text-d-text2 mb-6">
           {t('st.keyDesc1')}<Link to={CONFIG.PAGES.CLI_TOOLS} className="text-d-text2 hover:text-d-text">ohax-cli</Link>{t('st.keyDesc2')}
         </p>
+        <Link to="/settings/apikey/usage" className="-mt-3 mb-6 inline-block text-sm text-d-text2 transition-colors hover:text-d-text">{t('au.link')} →</Link>
 
         {key ? (
           <div className="space-y-4">
