@@ -5,6 +5,7 @@ import { confirmDialog } from '@/lib/confirm'
 import { Checkbox } from '@/components/ui/checkbox'
 import MonthDayPicker from '@/components/dashboard-ui/MonthDayPicker'
 import SecuritySection from './SecuritySection'
+import ApiKeysSection from './ApiKeysSection'
 import PasskeySection from './PasskeySection'
 import ExportMenu from '@/components/dashboard-ui/ExportMenu'
 import { Button } from '@/components/ui/button'
@@ -27,10 +28,6 @@ import {
   Webhook as WebhookIcon,
   LayoutGrid,
   Copy,
-  Check,
-  Eye,
-  EyeOff,
-  RefreshCw,
   Trash2,
   Plus,
   Send,
@@ -220,7 +217,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'api' && (
-            <ApiTab data={data} runAction={runAction} />
+            <ApiTab />
           )}
 
           {activeTab === 'webhooks' && (
@@ -597,27 +594,8 @@ function NotifyTab({
 // -------------------------------------------------------------
 // Tab 3: API Key Management
 // -------------------------------------------------------------
-function ApiTab({
-  data,
-  runAction,
-}: {
-  data: SettingsData
-  runAction: (fn: () => Promise<any>, msg?: string) => Promise<any>
-}) {
+function ApiTab() {
   const { t } = useTranslation()
-  const [showKey, setShowKey] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const key = data.user.api_key
-
-  const copyKey = () => {
-    if (!key) return
-    navigator.clipboard.writeText(key).then(() => {
-      setCopied(true)
-      toast.success(t('st.keyCopied'))
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
   return (
     <motion.div
       key="api"
@@ -636,83 +614,7 @@ function ApiTab({
         </p>
         <Link to="/settings/apikey/usage" className="-mt-3 mb-6 inline-block text-sm text-d-text2 transition-colors hover:text-d-text">{t('au.link')} →</Link>
 
-        {key ? (
-          <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-d-bg border border-d-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="min-w-0 flex-1 font-mono text-xs text-d-text break-all">
-                {showKey ? key : key.slice(0, 8) + '••••••••••••••••••••••••••••••••'}
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <Button variant="outline" size="sm"
-                  onClick={() => setShowKey(!showKey)}
-                  className="border-d-border"
-                  title={showKey ? t('st.hide') : t('st.show')}
-                >
-                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-
-                <Button variant="outline" size="sm"
-                  onClick={copyKey}
-                  className="border-d-border flex items-center gap-1.5"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  {t('st.copy')}
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm"
-                onClick={async () => {
-                  if (
-                    await confirmDialog(t('st.regenQ'))
-                  ) {
-                    runAction(
-                      () => apiCall('/api_key', 'POST', { operation: 'regenerate' }),
-                      t('st.regenDone')
-                    )
-                  }
-                }}
-                className="border-d-border flex items-center gap-1.5"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                {t('st.regen')}
-              </Button>
-
-              <Button variant="destructive" size="sm"
-                onClick={async () => {
-                  if (await confirmDialog(t('st.delKeyQ'))) {
-                    runAction(
-                      () => apiCall('/api_key', 'POST', { operation: 'delete' }),
-                      t('st.delKeyDone')
-                    )
-                  }
-                }}
-                className="border-red-500/30 flex items-center gap-1.5"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                {t('st.delKey')}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-8 bg-d-bg rounded-xl border border-d-border">
-            <Key className="w-8 h-8 text-d-text3 mx-auto mb-2" />
-            <p className="text-xs text-d-text3 mb-4">{t('st.noKey')}</p>
-            <Button variant="default" size="sm"
-              onClick={() =>
-                runAction(
-                  () => apiCall('/api_key', 'POST', { operation: 'generate' }),
-                  t('st.keyIssued')
-                )
-              }
-              
-            >
-              {t('st.issueKey')}
-            </Button>
-          </div>
-        )}
+        <ApiKeysSection />
 
         <div className="mt-8 pt-6 border-t border-d-border/60 text-xs text-d-text3 space-y-1">
           <p>
