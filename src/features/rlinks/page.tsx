@@ -1,3 +1,4 @@
+import { Flag } from '@/components/ui/flag'
 import ApiScopesDialog from './api-scopes'
 import i18n from '@/i18n'
 import { useTranslation } from 'react-i18next'
@@ -100,6 +101,7 @@ interface AccessLog {
   referrer: string
   is_bot: boolean
   flag: string
+  city?: string
   ref_domain: string
 }
 
@@ -1103,10 +1105,10 @@ function AccessLogsModal({ link, onClose }: { link: ShortLink; onClose: () => vo
                         {log.accessed_at}
                       </TableCell>
                       <TableCell className="py-2.5 whitespace-nowrap">
-                        <span className="mr-1.5">{log.flag}</span>
+                        <Flag emoji={log.flag} className="mr-1.5" />
                         <span>{log.country || t('rl.unknown')}</span>
-                        {log.region && (
-                          <span className="text-d-text3 ml-1">({log.region})</span>
+                        {(log.city || log.region) && (
+                          <span className="text-d-text3 ml-1">({[log.city, log.region].filter((x, i, a) => x && a.indexOf(x) === i).join(', ')})</span>
                         )}
                       </TableCell>
                       <TableCell className="py-2.5 text-d-text2">

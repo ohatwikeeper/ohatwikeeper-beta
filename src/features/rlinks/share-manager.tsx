@@ -83,7 +83,7 @@ function ShareDialog({ open, share, fieldIds, base, onClose, onSaved }: { open: 
   const { t } = useTranslation()
   const [name, setName] = useState(share?.name ?? '')
   const [days, setDays] = useState('')
-  const [fields, setFields] = useState<string[]>(share?.fields ?? fieldIds.filter((f) => f !== 'destination'))
+  const [fields, setFields] = useState<string[]>(share?.fields ?? fieldIds.filter((f) => !['destination', 'isp', 'recent'].includes(f)))
   const [busy, setBusy] = useState(false)
   const save = async () => {
     if (!fields.length) { toast.error(t('rs.pickOne')); return }

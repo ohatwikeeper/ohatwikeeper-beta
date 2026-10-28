@@ -33,7 +33,6 @@ export default function RLinkDetailPage({ slug: slugProp }: { slug?: string } = 
             <PageHeader icon={Link2} title={d.link.title || d.link.slug} desc={<>go.ohax.pw/{d.link.slug} → <span className="break-all text-d-text3">{d.link.original_url}</span></>} />
             <StatsView d={d} />
             <ShareManager slug={slug} />
-            <p className="mt-8 text-xs text-d-text3">{t('rl.dNote')}</p>
           </>
         )}
       </div>

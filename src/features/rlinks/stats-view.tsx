@@ -1,14 +1,24 @@
 import { useTranslation } from 'react-i18next'
+import { Flag } from '@/components/ui/flag'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Area, AreaChart } from 'recharts'
 
 // 短縮リンクの解析の本体。持ち主の詳細画面と共有ページで使う。届いた項目だけを描く
 export interface Item { name: string; count: number; flag?: string; region?: string | null }
 export interface Stats {
   link: { slug: string; short_url: string; title?: string | null; original_url?: string; created_at?: string; tags?: string[]; utm?: Record<string, string> }
-  totals?: { clicks?: number; logged?: number; unique?: number; bots?: number; humans?: number }
+  totals?: { clicks?: number; logged?: number; unique?: number; bots?: number; humans?: number; today?: number; week?: number; first_at?: string | null; last_at?: string | null }
   timeline?: { date: string; count: number }[]; dow?: number[]; hour?: number[]
   referrers?: Item[]; countries?: Item[]; cities?: Item[]; browsers?: Item[]; os?: Item[]; devices?: Item[]; languages?: Item[]; ab?: Item[]
+  regions?: Item[]; browser_versions?: Item[]; os_versions?: Item[]; isp?: Item[]; bot_agents?: Item[]; recent?: Visit[]
 }
+export interface Visit {
+  accessed_at: string; country: string; cc: string; flag: string; region?: string; city?: string; browser: string; browser_version: string
+  os: string; os_version: string; device: string; language: string; ref_domain: string; ab_variant: string; is_bot?: boolean
+}
+
+// DB の日時は JST の 'YYYY-MM-DD HH:MM:SS' か ISO で届く
+const toDate = (v: string) => new Date(/[zZ]|[+-]\d\d:\d\d$/.test(v) ? v : v.replace(' ', 'T') + '+09:00')
+const when = (v?: string | null) => (v ? toDate(v).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-')
 
 const ACCENT = 'var(--color-d-accent, #6dcbf7)'
 const tip = { contentStyle: { background: '#0e1013', border: '1px solid rgb(255 255 255 / .12)', borderRadius: 8, fontSize: 12 }, cursor: { fill: 'rgb(255 255 255 / .05)' } }
@@ -27,7 +37,7 @@ function Breakdown({ title, items }: { title: string; items: Item[] }) {
             <li key={`${i.name}-${i.region ?? ''}-${i.flag ?? ''}`} className="relative flex items-center justify-between gap-3 py-2 text-sm">
               <span className="absolute inset-y-1 left-0 -z-0 rounded bg-d-med" style={{ width: `${(i.count / max) * 100}%` }} />
               <span className="relative min-w-0 truncate">
-                {i.flag && <span className="mr-1.5" aria-hidden>{i.flag}</span>}
+                <Flag emoji={i.flag} className="mr-1.5" />
                 {i.name}
                 {i.region && i.region !== i.name && <span className="ml-1.5 text-xs text-d-text3">{i.region}</span>}
               </span>
@@ -48,9 +58,15 @@ export default function StatsView({ d }: { d: Stats }) {
     [t('rl.dClicks'), tot.clicks], [t('rl.dLogged'), tot.logged], [t('rl.dUnique'), tot.unique],
     [t('rs.dHumans'), tot.humans], [t('rl.dBots'), tot.bots],
   ].filter(([, v]) => typeof v === 'number') as [string, number][]) : []
+  const moments: [string, string][] = tot ? ([
+    [t('rs.dToday'), tot.today?.toLocaleString()], [t('rs.dWeek'), tot.week?.toLocaleString()],
+    [t('rs.dFirst'), tot.first_at !== undefined ? when(tot.first_at) : undefined], [t('rs.dLast'), tot.last_at !== undefined ? when(tot.last_at) : undefined],
+  ].filter(([, v]) => v !== undefined) as [string, string][]) : []
   const lists: [string, Item[] | undefined][] = [
-    [t('rl.dRef'), d.referrers], [t('rl.dCountry'), d.countries], [t('rs.f.cities'), d.cities],
-    [t('rl.dBrowser'), d.browsers], ['OS', d.os], [t('rl.cDevice'), d.devices], [t('rl.dLang'), d.languages], [t('rs.f.ab'), d.ab],
+    [t('rl.dRef'), d.referrers], [t('rl.dCountry'), d.countries], [t('rs.dRegions'), d.regions], [t('rs.f.cities'), d.cities],
+    [t('rl.dBrowser'), d.browsers], [t('rs.dBrowserV'), d.browser_versions], ['OS', d.os], [t('rs.dOsV'), d.os_versions],
+    [t('rl.cDevice'), d.devices], [t('rl.dLang'), d.languages], [t('rs.f.isp'), d.isp],
+    [t('rs.f.ab'), d.ab?.length ? d.ab : undefined], [t('rs.dBotUa'), d.bot_agents],
   ]
   const shown = lists.filter(([, v]) => v) as [string, Item[]][]
   const utm = d.link.utm ? Object.entries(d.link.utm) : []
@@ -60,6 +76,13 @@ export default function StatsView({ d }: { d: Stats }) {
         <dl className="mt-6 grid grid-cols-2 gap-y-4 border-y border-d-border py-5 md:auto-cols-fr md:grid-flow-col md:divide-x md:divide-d-border">
           {kpis.map(([l, v], i) => (
             <div key={l} className={i ? 'md:px-6' : 'md:pr-6'}><dt className="text-[11px] uppercase tracking-wider text-d-text3">{l}</dt><dd className="mt-1 text-2xl font-bold tabular-nums">{v.toLocaleString()}</dd></div>
+          ))}
+        </dl>
+      )}
+      {moments.length > 0 && (
+        <dl className="grid grid-cols-2 gap-y-3 border-b border-d-border py-4 md:auto-cols-fr md:grid-flow-col md:divide-x md:divide-d-border">
+          {moments.map(([l, v], i) => (
+            <div key={l} className={i ? 'md:px-6' : 'md:pr-6'}><dt className="text-[11px] uppercase tracking-wider text-d-text3">{l}</dt><dd className="mt-1 text-sm font-semibold tabular-nums">{v}</dd></div>
           ))}
         </dl>
       )}
@@ -109,7 +132,42 @@ export default function StatsView({ d }: { d: Stats }) {
           {shown.map(([title, items]) => <Breakdown key={title} title={title} items={items} />)}
         </div>
       )}
-      <p className="mt-8 text-xs text-d-text3">{t('rl.dNote')}</p>
+      {d.recent && <Recent rows={d.recent} />}
+      <p className="mt-8 text-xs text-pretty text-d-text3">{t('rs.botNote')}</p>
     </>
+  )
+}
+
+function Recent({ rows }: { rows: Visit[] }) {
+  const { t } = useTranslation()
+  const cols = [t('rs.cTime'), t('rs.cPlace'), t('rs.cEnv'), t('rs.cRef'), t('rs.cLang')]
+  return (
+    <section className="mt-10">
+      <h2 className="mb-3 font-bold">{t('rs.f.recent')}</h2>
+      {rows.length === 0 ? <p className="py-3 text-sm text-d-text3">{t('rl.noData')}</p> : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-left text-sm">
+            <thead><tr className="border-b border-d-border text-xs text-d-text3">{cols.map((c) => <th key={c} className="py-2 pr-4 font-medium">{c}</th>)}</tr></thead>
+            <tbody className="divide-y divide-d-border/60">
+              {rows.map((r, i) => (
+                <tr key={i} className={r.is_bot ? 'text-d-text3' : ''}>
+                  <td className="whitespace-nowrap py-2 pr-4 tabular-nums">{when(r.accessed_at)}</td>
+                  <td className="py-2 pr-4">
+                    <Flag emoji={r.flag} className="mr-1.5" />
+                    {[r.city, r.region, r.country].filter((x, j, a) => x && a.indexOf(x) === j).join(', ') || '-'}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {[`${r.browser} ${r.browser_version}`.trim(), `${r.os} ${r.os_version}`.trim(), r.device].filter((x) => x && x !== 'Other').join(' · ') || '-'}
+                    {r.is_bot && <span className="ml-2 inline-flex h-5 items-center rounded-full border border-d-border px-2 text-[11px] leading-4">{t('rs.bot')}</span>}
+                  </td>
+                  <td className="max-w-48 truncate py-2 pr-4">{r.ref_domain || t('rs.direct')}</td>
+                  <td className="py-2">{r.language || '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   )
 }
