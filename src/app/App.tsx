@@ -104,6 +104,7 @@ function App() {
             <Route path="/onboard" element={<Suspense fallback={<PageLoader />}><OnboardPage /></Suspense>} />
             <Route path="/onboard/:step" element={<Suspense fallback={<PageLoader />}><OnboardPage /></Suspense>} />
             <Route path="/login" element={<Suspense fallback={<PageLoader />}><LoginPage /></Suspense>} />
+            <Route path="/link-stats/:token" element={<Suspense fallback={<PageLoader />}><LinkStatsSharePage /></Suspense>} />
             <Route path="/auth/lapount/callback" element={<Suspense fallback={<PageLoader />}><LapountCallbackPage /></Suspense>} />
             <Route path="/confirm_login" element={<Suspense fallback={<PageLoader />}><ConfirmLoginPage /></Suspense>} />
           <Route path="/" element={<TopPage />} />
@@ -134,7 +135,6 @@ function App() {
           <Route path="/tools/search_ohatwi/:uuid" element={<Suspense fallback={<PageLoader />}><RequireLogin><SearchOhatwiPage /></RequireLogin></Suspense>} />
           <Route path="/tools/index.php" element={<Suspense fallback={<PageLoader />}><ToolsPage /></Suspense>} />
           <Route path="/u/:handle" element={<Suspense fallback={<PageLoader />}><HandleSearchPage /></Suspense>} />
-          <Route path="/link-stats/:token" element={<Suspense fallback={<PageLoader />}><LinkStatsSharePage /></Suspense>} />
           <Route path="/search" element={<Suspense fallback={<PageLoader />}><SearchPage /></Suspense>} />
           <Route path="/dev" element={<Suspense fallback={<PageLoader />}><DevPage /></Suspense>} />
           <Route path="/dev/api-docs" element={<Navigate to="/api-docs" replace />} />

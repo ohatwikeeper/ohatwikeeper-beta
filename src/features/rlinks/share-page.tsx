@@ -22,6 +22,11 @@ export default function LinkStatsSharePage() {
   }, [token])
   return (
     <div className="dash-scope min-h-dvh bg-d-bg text-d-text">
+      <header className="border-b border-d-border">
+        <div className="mx-auto flex h-14 max-w-5xl items-center px-5">
+          <a href="/" className="text-sm font-bold text-d-text">おはツイKeeper</a>
+        </div>
+      </header>
       <div className="mx-auto max-w-5xl px-5 py-10">
         {gone && <p className="py-24 text-center text-d-text3">{t('rs.pGone')}</p>}
         {!d && !gone && <PageLoader />}
