@@ -53,6 +53,7 @@ const HowToUsePage = lazy(() => import('@/features/howtouse/page'))
 const RankingPage = lazy(() => import('@/features/ranking/page'))
 const CliPage = lazy(() => import('@/features/cli/page'))
 const RLinksPage = lazy(() => import('@/features/rlinks/page'))
+const LinkStatsSharePage = lazy(() => import('@/features/rlinks/share-page'))
 const NotificationDetailPage = lazy(() => import('@/features/notifications/detail'))
 const Graph3DPage = lazy(() => import('@/pages/public/Graph3DPage'))
 const NotificationsPage = lazy(() => import('@/features/notifications/page'))
@@ -133,6 +134,7 @@ function App() {
           <Route path="/tools/search_ohatwi/:uuid" element={<Suspense fallback={<PageLoader />}><RequireLogin><SearchOhatwiPage /></RequireLogin></Suspense>} />
           <Route path="/tools/index.php" element={<Suspense fallback={<PageLoader />}><ToolsPage /></Suspense>} />
           <Route path="/u/:handle" element={<Suspense fallback={<PageLoader />}><HandleSearchPage /></Suspense>} />
+          <Route path="/link-stats/:token" element={<Suspense fallback={<PageLoader />}><LinkStatsSharePage /></Suspense>} />
           <Route path="/search" element={<Suspense fallback={<PageLoader />}><SearchPage /></Suspense>} />
           <Route path="/dev" element={<Suspense fallback={<PageLoader />}><DevPage /></Suspense>} />
           <Route path="/dev/api-docs" element={<Navigate to="/api-docs" replace />} />

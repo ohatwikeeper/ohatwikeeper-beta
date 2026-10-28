@@ -1,7 +1,8 @@
+import ApiScopesDialog from './api-scopes'
 import i18n from '@/i18n'
 import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Link2Off, SearchX } from 'lucide-react'
+import { KeyRound, Link2Off, SearchX } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { confirmDialog } from '@/lib/confirm'
 import AppEmpty from '@/components/dashboard-ui/AppEmpty'
@@ -131,6 +132,7 @@ export default function RLinksPage() {
 
   // Modals & Panels
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [apiOpen, setApiOpen] = useState(false)
   const [editingLink, setEditingLink] = useState<ShortLink | null>(null)
   const [qrModalLink, setQrModalLink] = useState<ShortLink | null>(null)
   const [logModalLink, setLogModalLink] = useState<ShortLink | null>(null)
@@ -192,6 +194,15 @@ export default function RLinksPage() {
               <Download className="w-4 h-4 text-d-text2" />
               {t('rl.csv')}
             </a>
+            <button
+              type="button"
+              onClick={() => setApiOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-d-border bg-d-med text-d-text transition-all text-xs font-semibold"
+            >
+              <KeyRound className="w-4 h-4 text-d-text2" />
+              {t('rs.api')}
+            </button>
+            <ApiScopesDialog open={apiOpen} onClose={() => setApiOpen(false)} />
 
             <Button variant="default"
               onClick={() => setIsCreateOpen(true)}
